@@ -12,7 +12,7 @@ try:
         pg.goto("http://localhost:8791/index.html"); pg.wait_for_function("window.Eng&&window.Eng.ready",timeout=30000)
         for c in cat:
             if only and c["id"] not in only: continue
-            d=pg.evaluate("(a)=>window.Eng.poster(a[0],a[1],a[2])",[c["id"],"#cfd3df","models/%s.json"%c["id"]])
+            d=pg.evaluate("(a)=>window.Eng.poster(a[0],a[1],a[2])",[c["id"],"#ffffff","models/%s.bin"%c["id"]])
             raw=base64.b64decode(d.split(",",1)[1]); open("%s/posters/%s.webp"%(PROJ,c["id"]),"wb").write(raw); print(c["id"],len(raw)//1024,"KB")
         print(errs); b.close()
 finally: srv.terminate()

@@ -67,7 +67,8 @@ if __name__=="__main__":
     P=lambda x:np.stack([x[:,0],x[:,2],-x[:,1]],1)
     V=P((vv-c)*sc); N=P(nn); N/=np.maximum(np.linalg.norm(N,axis=1,keepdims=True),1e-9)
     F=ff.copy()
-    out={"p":base64.b64encode(np.round(V*30000).astype("<i2").tobytes()).decode(),
-         "q":base64.b64encode(np.round(N*127).astype("i1").tobytes()).decode(),
-         "i":base64.b64encode(F.astype("<u2").flatten().tobytes()).decode()}
-    json.dump(out,open("/home/claude/proj/models/%s.json"%mid,"w")); print("ok",mid,len(V),len(F))
+    o=float(sys.argv[7]) if len(sys.argv)>7 else 0.0
+    sys.path.insert(0,"/home/claude/m3")
+    from json2bin import write_bin
+    write_bin("/home/claude/proj/models/%s.bin"%mid,np.round(V*30000).astype("<i2").flatten(),np.round(N*127).astype("i1").flatten(),F.astype("<u2").flatten(),o)
+    print("ok",mid,len(V),len(F),"o=",o)

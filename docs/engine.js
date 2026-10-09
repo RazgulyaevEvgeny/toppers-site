@@ -17,6 +17,11 @@ function geo(d){const p=new Int16Array(b64(d.p)),pf=new Float32Array(p.length);f
 const g=new THREE.BufferGeometry();g.setAttribute("position",new THREE.BufferAttribute(pf,3));g.setIndex(new THREE.BufferAttribute(new Uint16Array(b64(d.i)),1));
 if(d.q){const q=new Int8Array(b64(d.q)),nf=new Float32Array(q.length);for(let i=0;i<q.length;i++)nf[i]=q[i]/127;g.setAttribute("normal",new THREE.BufferAttribute(nf,3))}else g.computeVertexNormals();return g}
 
+function geoBin(buf){const h=new DataView(buf),n=h.getUint32(0,true),ni=h.getUint32(4,true),o=h.getFloat32(8,true);
+const p=new Int16Array(buf,16,3*n),q=new Int8Array(buf,16+6*n,3*n);let off=16+9*n;if(off&1)off++;const ix=new Uint16Array(buf,off,ni);
+const pf=new Float32Array(3*n),nf=new Float32Array(3*n);for(let i=0;i<pf.length;i++){pf[i]=p[i]/30000;nf[i]=q[i]/127}
+const g=new THREE.BufferGeometry();g.setAttribute("position",new THREE.BufferAttribute(pf,3));g.setAttribute("normal",new THREE.BufferAttribute(nf,3));g.setIndex(new THREE.BufferAttribute(ix,1));return{g,o}}
+
 function shadowTex(){if(SHT)return SHT;const sc=document.createElement("canvas");sc.width=sc.height=128;const x=sc.getContext("2d"),gr=x.createRadialGradient(64,64,0,64,64,64);gr.addColorStop(0,"rgba(30,40,120,.36)");gr.addColorStop(1,"rgba(30,40,120,0)");x.fillStyle=gr;x.fillRect(0,0,128,128);return SHT=new THREE.CanvasTexture(sc)}
 
 function scene(geoMain){
@@ -46,14 +51,19 @@ c.addEventListener("pointerup",up);c.addEventListener("pointercancel",up)})();
 function setCol(v,hex,now){v.tgt.set(hex).convertSRGBToLinear();if(now||v.st!=="ready")v.col.copy(v.tgt);v.dirty=true}
 
 /* ---------- ленивая загрузка ---------- */
-const Q={list:[],busy:0};
+const Q={list:[],busy:0},PF=new Map(),FQ=[];
+function getBuf(u){let p=PF.get(u);if(!p){p=fetch(u).then(r=>{if(!r.ok)throw 0;return u.endsWith(".json")?r.json():r.arrayBuffer()});p.catch(()=>PF.delete(u));PF.set(u,p)}return p}
+function trim(){if(PF.size<=16)return;for(const k of PF.keys()){PF.delete(k);if(PF.size<=12)break}}
+function kick(){if(document.hidden)setTimeout(drain,30);else requestAnimationFrame(drain)}
+function drain(){const j=FQ.shift();if(j){const[v,d]=j;try{let g,o;if(d instanceof ArrayBuffer){const r=geoBin(d);g=r.g;o=r.o}else{g=geo(d);o=d.o||0}
+v.o=o;v.geo=g;v.S=scene(g);v.base=v.rot=-.55+v.o;v.col.copy(v.tgt);v.st="ready";v.dirty=true;v.seen=performance.now();evict();trim()}catch(e){v.st="idle";v.tries++;if(v.tries<3)setTimeout(()=>want(v),800)}}
+if(FQ.length)kick()}
 function want(v){if(v.st==="loading"||v.st==="ready"||v.tries>=3||!v.url)return;if(!Q.list.includes(v)){Q.list.push(v);pump()}}
 function pump(){while(Q.busy<PAR&&Q.list.length){
 let bi=0,bd=1e9;Q.list.forEach((v,i)=>{const r=v.c.getBoundingClientRect(),d=Math.abs(r.top+r.height/2-innerHeight/2)+(v.vis?0:1e4);if(d<bd){bd=d;bi=i}});
 const v=Q.list.splice(bi,1)[0];if(v.st==="loading"||v.st==="ready")continue;
 Q.busy++;v.st="loading";
-fetch(v.url).then(r=>{if(!r.ok)throw 0;return r.json()}).then(d=>{
-v.o=d.o||0;v.geo=geo(d);v.S=scene(v.geo);v.base=v.rot=-.55+v.o;v.col.copy(v.tgt);v.st="ready";v.dirty=true;v.seen=performance.now();evict()})
+getBuf(v.url).then(d=>{FQ.push([v,d]);kick()})
 .catch(()=>{v.st="idle";v.tries++;if(v.tries<3)setTimeout(()=>want(v),1500*v.tries)})
 .finally(()=>{Q.busy--;pump()})}}
 function evict(){const live=Object.values(V).filter(v=>v.st==="ready");if(live.length<=MAXLIVE)return;
@@ -80,8 +90,8 @@ for(const id in V){const v=V[id];if(!v.vis||v.st!=="ready"||!v.c.isConnected)con
 if(forced&&(!forced.vis||performance.now()-forcedT>4000)&&!(LIVE&&LIVE.drag))forced=null;
 let act=hov||(forced&&forced.st==="ready"?forced:null)||near;if(LIVE&&LIVE.drag)act=LIVE;
 let snapped=false;
-if(act!==LIVE){if(LIVE&&LIVE.S&&LIVE.c.isConnected){snap(LIVE);snapped=true}if(LIVE)LIVE.c.classList.remove("hid");LIVE=act;if(LIVE)LIVE.dirty=true}
-if(LIVE){if(R.domElement.parentNode!==LIVE.c.parentNode)LIVE.c.after(R.domElement);LIVE.c.classList.add("hid")}
+if(act!==LIVE){if(LIVE&&LIVE.S&&LIVE.c.isConnected){snap(LIVE);snapped=true}if(LIVE)LIVE.c.classList.remove("hid");LIVE=act;if(LIVE){if(LIVE.S){snap(LIVE);snapped=true}LIVE.dirty=true;LIVE.lf=0}}
+if(LIVE){if(R.domElement.parentNode!==LIVE.c.parentNode){LIVE.c.after(R.domElement);LIVE.lf=0}if(LIVE.lf<3&&++LIVE.lf===3)LIVE.c.classList.add("hid")}
 let budget=2;
 for(const v of vis){
 if(!v.col.equals(v.tgt)){v.col.lerp(v.tgt,.2);if(Math.abs(v.col.r-v.tgt.r)+Math.abs(v.col.g-v.tgt.g)+Math.abs(v.col.b-v.tgt.b)<.004)v.col.copy(v.tgt);v.dirty=true}
@@ -89,6 +99,17 @@ if(v===LIVE){if(!v.drag&&!still){v.ph+=dt/1500;v.rot=v.base+AMP*Math.sin(v.ph);v
 if(v.dirty&&budget>0){budget--;snap(v);snapped=true}}
 if(LIVE&&LIVE.S&&(LIVE.dirty||snapped)){paint(LIVE);LIVE.dirty=false}}
 requestAnimationFrame(frame);
+
+/* ---------- прогрев и предзагрузка ---------- */
+const idle=(f,t)=>window.requestIdleCallback?requestIdleCallback(f,{timeout:t}):setTimeout(f,Math.min(t,400));
+function warm(){try{const r=shared(),g=new THREE.BufferGeometry();g.setAttribute("position",new THREE.BufferAttribute(new Float32Array([0,0,0,.1,0,0,0,.1,0]),3));g.setAttribute("normal",new THREE.BufferAttribute(new Float32Array([0,0,1,0,0,1,0,0,1]),3));
+const S=scene(g);S.cam.position.copy(CB);S.cam.lookAt(0,.44,0);r.render(S.s,S.cam);g.dispose();window.__warm=S}catch(e){}}
+function prefetchAll(){const c=navigator.connection;if(c&&(c.saveData||/(^|-)2g/.test(c.effectiveType||"")))return;
+const list=[...document.querySelectorAll(".ph[data-v]")].map(p=>V[p.dataset.v]).filter(v=>v&&v.url).slice(0,12);let i=0;
+const next=()=>{while(i<list.length&&(list[i].st==="ready"||PF.has(list[i].url)))i++;if(i>=list.length)return;const v=list[i++];getBuf(v.url).catch(()=>{}).then(()=>idle(next,500))};next()}
+idle(warm,900);
+const pf0=()=>setTimeout(()=>idle(prefetchAll,2500),600);
+if(document.readyState==="complete")pf0();else addEventListener("load",pf0,{once:true});
 
 /* ---------- миниатюра для корзины ---------- */
 const TH={};

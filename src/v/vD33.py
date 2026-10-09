@@ -36,7 +36,7 @@ def fixmodels(t):
     cat=json.load(open(os.environ.get('PROJ','/home/claude/proj')+'/catalog.json',encoding='utf-8'))
     def ln(c):
         tiers=",".join("{from:%d,price:%d}"%(a,b) for a,b in c["tiers"])
-        return '  {id:%s,name:%s,def:"Белый",tiers:[%s],img:%s,m3:%s%s},'%(json.dumps(c["id"]),json.dumps(c["name"],ensure_ascii=False),tiers,json.dumps("posters/%s.webp"%c["id"]),json.dumps("models/%s.json"%c["id"]),(",fix:"+json.dumps(c["fix"],ensure_ascii=False)) if c.get("fix") else "")
+        return '  {id:%s,name:%s,def:"Белый",tiers:[%s],img:%s,m3:%s%s},'%(json.dumps(c["id"]),json.dumps(c["name"],ensure_ascii=False),tiers,json.dumps("posters/%s.webp"%c["id"]),json.dumps("models/%s.bin"%c["id"]),(",fix:"+json.dumps(c["fix"],ensure_ascii=False)) if c.get("fix") else "")
     i=t.index("const MODELS=["); j=t.index("\n];",i)
     blk=t[i:j]; cu=[l for l in blk.split("\n") if l.strip().startswith('{id:"custom"')][0].rstrip(",")
     return t[:i]+"const MODELS=[\n"+"\n".join(ln(c) for c in cat)+"\n"+cu+t[j:]
@@ -51,7 +51,9 @@ HP=_r(HP,'<button class="dot${i===sel[m.id]?" on":""}"','<button class="dot${i==
 HP=_r(HP,'title="${c.n}"></button>','title="${c.n}${c.na?" — нет в наличии":""}"></button>',"natitle")
 HP=_r(HP,'<div class="cn">Цвет: ${cs[sel[m.id]].n}</div>','<div class="cn">Цвет: ${cs[sel[m.id]].n}${cs[sel[m.id]].na?" · <b class=\\"nas\\">нет в наличии</b>":""}</div>',"cn")
 HP=_r(HP,'`<button class="add" data-a="add" data-k="${s.k}">Добавить</button>`;','(!m.custom&&colorsOf(m)[sel[m.id]].na)?`<button class="add" disabled>Цвета нет в наличии</button>`:`<button class="add" data-a="add" data-k="${s.k}">Добавить</button>`;',"ctrlna")
-HP=_r(HP,'<img src="${m.img}" alt=','<img loading="lazy" decoding="async" src="${m.img}" alt=',"photo")
+_a=HP.index("const photo=");_b=HP.index("\n",_a)
+HP=HP[:_a]+r'''const photo=m=>{const i=MODELS.indexOf(m),ea=i<8,im=`<img ${ea?(i<4?'fetchpriority="high"':''):'loading="lazy"'} decoding="async" width="420" height="420" src="${m.img}" alt="${m.name}, топпер на крышке стакана">`;
+if(!(m.m3&&gl3)||m.custom)return im;const c=colorsOf(m)[sel[m.id]].c;return `<span class="pt">${im}<i class="tn" style="background:${c};-webkit-mask-image:url(${m.img});mask-image:url(${m.img})"></i></span>`};'''+HP[_b:]
 common.HELPERS=HP
 common.CART_MARKUP=r'''<div class="bar" id="bar"><button id="openCart" aria-label="Открыть корзину"><span class="cic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4h2.5l2 11h10l2-8H7"/><circle cx="9.5" cy="19.5" r="1.3"/><circle cx="17" cy="19.5" r="1.3"/></svg><span id="barL"></span></span></button></div>
 <div class="ov" id="ov"><div class="sheet" role="dialog" aria-label="Корзина">
@@ -511,8 +513,15 @@ button{-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:tra
 .cv3.hid{visibility:hidden}
 .ph .cv3{opacity:0;transition:opacity .45s}
 .ph.ready .cv3{opacity:1}
-.ph.v3 img{scale:1!important;transition:opacity .45s}
-.ph.v3.ready img{opacity:0;visibility:visible}
+.ph.v3 img{scale:1!important}
+.pt{position:absolute;inset:0;display:block}
+.pt img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.pt .tn{position:absolute;inset:0;mix-blend-mode:multiply;-webkit-mask-size:cover;mask-size:cover;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center}
+.ph.v3.ready .pt{opacity:0;visibility:hidden;transition:opacity 0s linear .6s,visibility 0s linear .6s}
+.ph .cv3.live{opacity:1;transition:none}
+.shell>*:not(.nav){transition:opacity .6s ease}
+html.boot .shell>*:not(.nav){opacity:0}
+html.boot .shell>*:not(.nav) *,html.boot .shell>*:not(.nav) *::before,html.boot .shell>*:not(.nav) *::after{animation-play-state:paused!important}
 .item{content-visibility:auto;contain-intrinsic-size:auto 600px}
 '''
 ARROW='<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v11M3 8.5 8 13.5l5-5"/></svg>'
@@ -612,14 +621,48 @@ function tab(n,after){document.querySelectorAll("[data-page]").forEach(p=>p.hidd
 document.addEventListener("click",e=>{const t=e.target.closest("[data-tab]"),g=e.target.closest("[data-go]");if(t)tab(t.dataset.tab);else if(g)tab("catalog",()=>{const el=document.getElementById(g.dataset.go);el&&el.scrollIntoView({behavior:"smooth"})})});
 if(location.hash==="#why")tab("why");'''
 BODY=BODY+'<script src="three.min.js" defer></script><script src="engine.js" defer></script>'
-import os,shutil
+import os,shutil,hashlib,base64
+PROJ=os.environ.get("PROJ","/home/claude/proj")
 OUT=os.environ.get("OUT","/home/claude/site")
 os.makedirs(OUT,exist_ok=True)
 html=page("raz.toppers",FONTS,CSS,BODY,CARD)
-open("D.html","w",encoding="utf-8").write(html)
-open(OUT+"/index.html","w",encoding="utf-8").write('<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>raz.toppers</title><meta property="og:title" content="raz.toppers"><meta name="description" content="Топперы для кофейных стаканчиков — студия «Разгуляев»"><style>html,body{margin:0}</style></head><body>'+html+'</body></html>')
-for f in("three.min.js","engine.js"): shutil.copy(os.environ.get("PROJ","/home/claude/proj")+"/"+f,OUT+"/"+f)
+open("D.html","w",encoding="utf-8").write(html)          # фрагмент для артефакта (всё внутри)
+
+# ---------- автономный сайт: настоящий <head>, предзагрузка, внешние картинки ----------
+cat=json.load(open(PROJ+"/catalog.json",encoding="utf-8"))
+st=html
+sm=re.search(r"<style>.*?</style>",st,re.S); style=sm.group(0); st=st.replace(style,"",1)
+st=re.sub(r"<title>.*?</title>\n","",st,count=1)
+st=re.sub(r'<link rel="preconnect"[^>]*>',"",st)
+st=re.sub(r'<link rel="stylesheet" href="https://fonts[^>]*>',"",st)
+st=st.replace('<script src="three.min.js" defer></script><script src="engine.js" defer></script>',"")
+shutil.rmtree(OUT+"/assets",ignore_errors=True); os.makedirs(OUT+"/assets")
+def ext(m):
+    b=m.group(2); name="assets/"+hashlib.sha1(b.encode()).hexdigest()[:10]+"."+{"jpeg":"jpg","svg+xml":"svg"}.get(m.group(1),m.group(1))
+    open(OUT+"/"+name,"wb").write(base64.b64decode(b)); return name
+DU=re.compile(r"data:image/(webp|jpeg|png|svg\+xml);base64,([A-Za-z0-9+/=]{1500,})")
+st=DU.sub(ext,st); style=DU.sub(ext,style)
+st=st.replace('<figure class="shot"><img src=','<figure class="shot"><img loading="lazy" decoding="async" src=')
+boot="""<script>(function(){var h=document.documentElement,d=0,n=2;h.classList.add("boot");
+function go(){if(d)return;d=1;requestAnimationFrame(function(){h.classList.remove("boot")})}
+window.__go=go;setTimeout(go,1800);
+function ok(){if(--n===0)go()}
+function fonts(){var f=document.fonts;if(!f||!f.load){ok();return}Promise.all([f.load('800 1em "Inter Tight"'),f.load('600 1em "Inter Tight"'),f.load('400 1em "Inter"')]).then(ok,ok)}
+function bind(){var l=document.getElementById("fontcss");if(!l){ok();return}if(l.sheet)fonts();else{l.addEventListener("load",fonts);l.addEventListener("error",ok)}}
+function posters(){var im=[].slice.call(document.querySelectorAll(".ph img")).slice(0,4);Promise.all(im.map(function(i){return i.decode?i.decode().catch(function(){}):0})).then(ok,ok)}
+window.__boot2=function(){bind();posters()}})();</script>"""
+pre="".join('<link rel="preload" as="image" href="posters/%s.webp" fetchpriority="high">'%c["id"] for c in cat[:4])
+pre+="".join('<link rel="preload" as="fetch" href="models/%s.bin" crossorigin fetchpriority="low">'%c["id"] for c in cat[:2])
+head=('<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
+ '<title>raz.toppers</title><meta property="og:title" content="raz.toppers"><meta name="theme-color" content="#ffffff">'
+ '<meta name="description" content="Топперы для кофейных стаканчиков — студия «Разгуляев»">'
+ '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
+ +boot+style+pre+
+ '<link id="fontcss" rel="stylesheet" href="%s" media="print" onload="this.media=\'all\'"><noscript><link rel="stylesheet" href="%s"></noscript>'%(FONTS,FONTS)+
+ '<script src="three.min.js" defer></script><script src="engine.js" defer></script></head><body>')
+open(OUT+"/index.html","w",encoding="utf-8").write(head+st+'<script>window.__boot2&&__boot2()</script></body></html>')
+for f in("three.min.js","engine.js"): shutil.copy(PROJ+"/"+f,OUT+"/"+f)
 for d in("models","posters"):
-    os.makedirs(OUT+"/"+d,exist_ok=True)
-    for f in os.listdir(os.environ.get("PROJ","/home/claude/proj")+"/"+d): shutil.copy("%s/%s/%s"%(os.environ.get("PROJ","/home/claude/proj"),d,f),"%s/%s/%s"%(OUT,d,f))
-print("D7 ok")
+    shutil.rmtree(OUT+"/"+d,ignore_errors=True); os.makedirs(OUT+"/"+d)
+    for f in os.listdir(PROJ+"/"+d): shutil.copy("%s/%s/%s"%(PROJ,d,f),"%s/%s/%s"%(OUT,d,f))
+print("D33 ok",len(open(OUT+"/index.html",encoding="utf-8").read())//1024,"KB html;",len(os.listdir(OUT+"/assets")),"assets")

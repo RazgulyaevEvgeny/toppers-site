@@ -1,7 +1,7 @@
 """STL -> models/<id>.json  (плавная пересборка через воксели + marching cubes).
 Подставка и фигурка объединяются в одну гладкую сетку: пилообразные края, дыры и «рваные» глаза
 от прежнего кластерного упрощения исчезают, нормали считаются по сглаженному полю.
-Запуск: python3 stl_to_model.py file.stl <id> [vox_mm=0.1] [step=2] [sigma_vox=1.2]"""
+Запуск: python3 stl_to_model.py file.stl <id> [vox_mm=0.1] [step=2] [sigma_vox=1.2] [xmin:xmax — взять только часть по оси X]"""
 import sys,json,base64,numpy as np
 from scipy import ndimage
 from skimage.measure import marching_cubes
@@ -25,8 +25,11 @@ def shell_points(v,f,h):
             w1,w2=i/k,j/k; pts.append(A*(1-w1-w2)+B*w1+C*w2)
     return np.vstack(pts)
 
-def build(path,vox=0.1,step=2,sigma=1.0):
+def build(path,vox=0.1,step=2,sigma=1.0,xr=None):
     v,f=read_stl(path)
+    if xr:
+        cx=v[f][:,:,0].mean(1); f=f[(cx>=xr[0])&(cx<xr[1])]
+        u=np.unique(f); rm=-np.ones(len(v),int); rm[u]=np.arange(len(u)); v=v[u]; f=rm[f]
     mn=v.min(0); mx=v.max(0)
     pad=4
     pts=shell_points(v,f,vox*0.6)
@@ -56,7 +59,8 @@ if __name__=="__main__":
     vox=float(sys.argv[3]) if len(sys.argv)>3 else .1
     step=int(sys.argv[4]) if len(sys.argv)>4 else 2
     sg=float(sys.argv[5]) if len(sys.argv)>5 else 1.2
-    vv,ff,nn,mn,mx=build(path,vox,step,sg)
+    xr=tuple(float(t) for t in sys.argv[6].split(':')) if len(sys.argv)>6 else None
+    vv,ff,nn,mn,mx=build(path,vox,step,sg,xr)
     print("mesh verts",len(vv),"tris",len(ff),flush=True)
     assert len(vv)<65536,"слишком много вершин: увеличьте step или vox"
     c=np.array([(mn[0]+mx[0])/2,(mn[1]+mx[1])/2,mn[2]]); sc=1/(mx-mn).max()

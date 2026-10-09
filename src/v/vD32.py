@@ -617,7 +617,7 @@ OUT=os.environ.get("OUT","/home/claude/site")
 os.makedirs(OUT,exist_ok=True)
 html=page("Топперы для кофеен",FONTS,CSS,BODY,CARD)
 open("D.html","w",encoding="utf-8").write(html)
-open(OUT+"/index.html","w",encoding="utf-8").write('<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="Топперы для кофейных стаканчиков — студия «Разгуляев»"><style>html,body{margin:0}</style></head><body>'+html+'</body></html>')
+open(OUT+"/index.html","w",encoding="utf-8").write('<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>raz.toppers</title><meta property="og:title" content="raz.toppers"><meta name="description" content="Топперы для кофейных стаканчиков — студия «Разгуляев»"><style>html,body{margin:0}</style></head><body>'+html+'</body></html>')
 for f in("three.min.js","engine.js"): shutil.copy(os.environ.get("PROJ","/home/claude/proj")+"/"+f,OUT+"/"+f)
 for d in("models","posters"):
     os.makedirs(OUT+"/"+d,exist_ok=True)

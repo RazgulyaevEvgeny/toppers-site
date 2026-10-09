@@ -24,7 +24,7 @@ CP=_r(CP,'$("#grid").innerHTML=MODELS.map(card).join("");','renderGrid();mount3d
 CP=_r(CP,'<div class="qty"><button data-a="dec" data-k="${l.k}"','<div class="ctl"><div class="qty"><button data-a="dec" data-k="${l.k}"',"ctl1")
 CP=_r(CP,'aria-label="Больше">+</button></div></div>`}).join("")','aria-label="Больше">+</button></div><button class="del" data-a="del" data-k="${l.k}" aria-label="Удалить позицию" title="Удалить"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12.2a2 2 0 0 0 2 1.8h6a2 2 0 0 0 2-1.8L18 7M9 7V4.5A1.5 1.5 0 0 1 10.5 3h3A1.5 1.5 0 0 1 15 4.5V7"/></svg></button></div></div>`}).join("")',"ctl2")
 CP=_r(CP,'if(a==="add")cart[k]=addQty(m,k);','if(a==="del")delete cart[k];if(a==="add")cart[k]=addQty(m,k);',"del")
-CP=_r(CP,'if(a==="add")cart[k]=addQty(m,k);','if(a==="add"){const v=addQty(m);if(!v)return;cart[k]=q+v;added=k;clearTimeout(addedT);addedT=setTimeout(()=>{added=null;syncDraft()},1300)}',"addq")
+CP=_r(CP,'if(a==="add")cart[k]=addQty(m,k);','if(a==="add"){const v=addQty(m);if(!v)return;cart[k]=q+v;draft[m.id]="";added=k;clearTimeout(addedT);addedT=setTimeout(()=>{added=null;syncDraft()},1300)}',"addq")
 CP=_r(CP,'renderGrid();mount3d();watchVis();','renderGrid();syncDraft();mount3d();watchVis();',"sync")
 common.CORE_POST=CP
 CPRE=common.CORE_PRE
@@ -48,7 +48,7 @@ HP=common.HELPERS
 a=HP.index("const ctrl=");b=HP.index("\n",a)
 HP=HP[:a]+r'''const draft={};
 const dget=m=>draft[m.id]===undefined?CONFIG.minQty:draft[m.id];
-const qbox=m=>{if(!m.custom&&colorsOf(m)[sel[m.id]].na)return `<button class="add" disabled>Цвета нет в наличии</button>`;return `<div class="addrow"><div class="qty dq"><button type="button" data-dq="-1" data-m="${m.id}" aria-label="Меньше">−</button><span class="qw"><input class="qn qp" type="text" inputmode="numeric" data-m="${m.id}" aria-label="Сколько штук добавить" autocomplete="off"><span>шт</span></span><button type="button" data-dq="1" data-m="${m.id}" aria-label="Больше">+</button></div><button class="add" data-a="add" data-m="${m.id}" data-k="${key(m.id,sel[m.id])}"><span class="al">Добавить</span></button></div>`};
+const qbox=m=>{if(!m.custom&&colorsOf(m)[sel[m.id]].na)return `<button class="add" disabled>Цвета нет в наличии</button>`;return `<div class="addrow"><div class="qty dq"><button type="button" data-dq="-1" data-m="${m.id}" aria-label="Меньше">−</button><span class="qw"><input class="qn qp" type="text" inputmode="numeric" placeholder="0" data-m="${m.id}" aria-label="Сколько штук добавить" autocomplete="off"><span>шт</span></span><button type="button" data-dq="1" data-m="${m.id}" aria-label="Больше">+</button></div><button class="add" data-a="add" data-m="${m.id}" data-k="${key(m.id,sel[m.id])}"><span class="al">Добавить</span></button></div>`};
 const ctrl=(m,s)=>qbox(m);'''+HP[b:]
 HP=_r(HP,' От ${minOf(m)} шт, шаг ${stepOf(m)} шт.','',"ct")
 HP=_r(HP,'s.T&&pick(tiersOf(m),s.T)===x','s.T>=x.from&&pick(tiersOf(m),s.T)===x',"ison")
@@ -199,7 +199,7 @@ canvas.spoil{position:absolute;inset:0;width:100%;height:100%;z-index:1}
 #barL{position:absolute;top:-6px;right:-6px;min-width:24px;height:24px;padding:0 6px;border-radius:12px;background:#fff;color:var(--blue);font:700 12px/24px var(--f);text-align:center;box-shadow:0 0 0 2px var(--blue)}
 #barL:empty{display:none}
 .empty{margin:14px 0 0;padding:18px;border-radius:20px;background:var(--tile);color:var(--muted);font-size:14px}
-.addrow{display:flex;flex-direction:column;gap:8px}.addrow .add{min-width:0;padding:0 10px}.add.ok{background:#1fa463}.add.ok:hover{background:#1fa463}.qp{width:54px}
+.addrow{display:flex;flex-direction:column;gap:8px}.addrow .add{min-width:0;padding:0 10px}.add.ok{background:#1fa463}.add.ok:hover,.add.ok:disabled{background:#1fa463;color:#fff}.qp::placeholder{color:#9096a8;opacity:1}.qp{width:54px}
 .qw{display:inline-flex;align-items:center;gap:4px;flex:none}
 .pre{background:var(--tile);border-radius:999px;height:52px;padding:0 14px}
 .qn{width:46px;text-align:center;border:0;background:transparent;font:700 16px var(--f);padding:0;border-radius:8px;color:var(--ink);font-variant-numeric:tabular-nums}
@@ -594,7 +594,7 @@ function addQty(m){return fixQ(m,dget(m))}
 let added=null,addedT=0;
 function syncDraft(){document.querySelectorAll(".qp").forEach(i=>{if(document.activeElement!==i)i.value=dget(byId(i.dataset.m))});
 document.querySelectorAll("button.add[data-m]").forEach(b=>{const m=byId(b.dataset.m),v=addQty(m),l=b.querySelector(".al");if(!l)return;const ok=added===b.dataset.k;b.disabled=!v;b.classList.toggle("ok",ok);const t=ok?"Добавлено ✓":"Добавить";if(l.textContent!==t)l.textContent=t})}
-document.addEventListener("click",e=>{const b=e.target.closest("button[data-dq]");if(!b)return;const m=byId(b.dataset.m),st=stepOf(m);draft[m.id]=Math.max(st,addQty(m)+(+b.dataset.dq)*st);const i=b.parentNode.querySelector(".qp");if(i)i.value=draft[m.id];syncDraft()});
+document.addEventListener("click",e=>{const b=e.target.closest("button[data-dq]");if(!b)return;const m=byId(b.dataset.m),st=stepOf(m);{const nv=addQty(m)+(+b.dataset.dq)*st;draft[m.id]=nv>0?nv:""}const i=b.parentNode.querySelector(".qp");if(i)i.value=draft[m.id];syncDraft()});
 document.addEventListener("input",e=>{const t=e.target;if(!t.classList||!t.classList.contains("qp"))return;const v=t.value.replace(/\D/g,"").slice(0,5);if(v!==t.value)t.value=v;draft[t.dataset.m]=v;syncDraft()});
 document.addEventListener("change",e=>{const t=e.target;if(!t.classList||!t.classList.contains("qp"))return;const m=byId(t.dataset.m),v=addQty(m);draft[m.id]=v?v:"";t.value=draft[m.id];syncDraft()});
 document.addEventListener("keydown",e=>{const t=e.target;if(e.key!=="Enter"||!t.classList||!t.classList.contains("qp"))return;e.preventDefault();const b=t.closest(".addrow").querySelector(".add");t.blur();b.click()});

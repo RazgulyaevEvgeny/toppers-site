@@ -131,7 +131,7 @@ canvas.spoil{position:absolute;inset:0;width:100%;height:100%;z-index:1}
 #barL{position:absolute;top:-6px;right:-6px;min-width:24px;height:24px;padding:0 6px;border-radius:12px;background:#fff;color:var(--blue);font:700 12px/24px var(--f);text-align:center;box-shadow:0 0 0 2px var(--blue)}
 #barL:empty{display:none}
 .empty{margin:14px 0 0;padding:18px;border-radius:20px;background:var(--tile);color:var(--muted);font-size:14px}
-.addrow{display:flex;flex-direction:column;gap:8px}.addrow .add{min-width:0;padding:0 10px}.add.ok{background:#1fa463}.add.ok:hover{background:#1fa463}.qp{width:54px}
+.addrow{display:flex;flex-direction:column;gap:8px}.addrow .add{min-width:0;padding:0 10px}.add.ok{background:#1fa463}.add.ok:hover,.add.ok:disabled{background:#1fa463;color:#fff}.qp::placeholder{color:#9096a8;opacity:1}.qp{width:54px}
 .qw{display:inline-flex;align-items:center;gap:4px;flex:none}
 .pre{background:var(--tile);border-radius:999px;height:52px;padding:0 14px}
 .qn{width:46px;text-align:center;border:0;background:transparent;font:700 16px var(--f);padding:0;border-radius:8px;color:var(--ink);font-variant-numeric:tabular-nums}
@@ -661,7 +661,7 @@ const st=m=>{const k=key(m.id,sel[m.id]),q=cart[k]||0,T=total(m.id),mn=minOf(m);
 const swatches=m=>{if(m.custom)return"";const cs=colorsOf(m);return `<div class="sw" role="group" aria-label="Цвет">${cs.map((c,i)=>`<button class="dot${i===sel[m.id]?" on":""}${c.na?" na":""}" style="--c:${c.c}" data-a="col" data-id="${m.id}" data-i="${i}" aria-label="${c.n}" aria-pressed="${i===sel[m.id]}" title="${c.n}${c.na?" — нет в наличии":""}"></button>`).join("")}</div><div class="cn">Цвет: ${cs[sel[m.id]].n}${cs[sel[m.id]].na?" · <b class=\"nas\">нет в наличии</b>":""}</div>`};
 const draft={};
 const dget=m=>draft[m.id]===undefined?CONFIG.minQty:draft[m.id];
-const qbox=m=>{if(!m.custom&&colorsOf(m)[sel[m.id]].na)return `<button class="add" disabled>Цвета нет в наличии</button>`;return `<div class="addrow"><div class="qty dq"><button type="button" data-dq="-1" data-m="${m.id}" aria-label="Меньше">−</button><span class="qw"><input class="qn qp" type="text" inputmode="numeric" data-m="${m.id}" aria-label="Сколько штук добавить" autocomplete="off"><span>шт</span></span><button type="button" data-dq="1" data-m="${m.id}" aria-label="Больше">+</button></div><button class="add" data-a="add" data-m="${m.id}" data-k="${key(m.id,sel[m.id])}"><span class="al">Добавить</span></button></div>`};
+const qbox=m=>{if(!m.custom&&colorsOf(m)[sel[m.id]].na)return `<button class="add" disabled>Цвета нет в наличии</button>`;return `<div class="addrow"><div class="qty dq"><button type="button" data-dq="-1" data-m="${m.id}" aria-label="Меньше">−</button><span class="qw"><input class="qn qp" type="text" inputmode="numeric" placeholder="0" data-m="${m.id}" aria-label="Сколько штук добавить" autocomplete="off"><span>шт</span></span><button type="button" data-dq="1" data-m="${m.id}" aria-label="Больше">+</button></div><button class="add" data-a="add" data-m="${m.id}" data-k="${key(m.id,sel[m.id])}"><span class="al">Добавить</span></button></div>`};
 const ctrl=(m,s)=>qbox(m);
 const noteHTML=(m,s)=>{const n=!s.T?"":!s.ok?`Минимум ${s.mn} шт, добавьте ещё ${s.mn-s.T}`:m.custom?`В заказе ${s.T} шт, цену назовём после макета`:`В заказе ${s.T} шт · ${fmt(unit(m,s.T))}/шт`;return n?`<div class="sub${s.ok?"":" warn"}">${n}</div>`:""};
 const customText=m=>`Принесите логотип или персонажа, напечатаем по вашему макету.`;
@@ -682,7 +682,7 @@ function addQty(m){return fixQ(m,dget(m))}
 let added=null,addedT=0;
 function syncDraft(){document.querySelectorAll(".qp").forEach(i=>{if(document.activeElement!==i)i.value=dget(byId(i.dataset.m))});
 document.querySelectorAll("button.add[data-m]").forEach(b=>{const m=byId(b.dataset.m),v=addQty(m),l=b.querySelector(".al");if(!l)return;const ok=added===b.dataset.k;b.disabled=!v;b.classList.toggle("ok",ok);const t=ok?"Добавлено ✓":"Добавить";if(l.textContent!==t)l.textContent=t})}
-document.addEventListener("click",e=>{const b=e.target.closest("button[data-dq]");if(!b)return;const m=byId(b.dataset.m),st=stepOf(m);draft[m.id]=Math.max(st,addQty(m)+(+b.dataset.dq)*st);const i=b.parentNode.querySelector(".qp");if(i)i.value=draft[m.id];syncDraft()});
+document.addEventListener("click",e=>{const b=e.target.closest("button[data-dq]");if(!b)return;const m=byId(b.dataset.m),st=stepOf(m);{const nv=addQty(m)+(+b.dataset.dq)*st;draft[m.id]=nv>0?nv:""}const i=b.parentNode.querySelector(".qp");if(i)i.value=draft[m.id];syncDraft()});
 document.addEventListener("input",e=>{const t=e.target;if(!t.classList||!t.classList.contains("qp"))return;const v=t.value.replace(/\D/g,"").slice(0,5);if(v!==t.value)t.value=v;draft[t.dataset.m]=v;syncDraft()});
 document.addEventListener("change",e=>{const t=e.target;if(!t.classList||!t.classList.contains("qp"))return;const m=byId(t.dataset.m),v=addQty(m);draft[m.id]=v?v:"";t.value=draft[m.id];syncDraft()});
 document.addEventListener("keydown",e=>{const t=e.target;if(e.key!=="Enter"||!t.classList||!t.classList.contains("qp"))return;e.preventDefault();const b=t.closest(".addrow").querySelector(".add");t.blur();b.click()});
@@ -741,7 +741,7 @@ $("#wa").href=blk?"#":`https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponen
 document.addEventListener("click",e=>{const b=e.target.closest("button[data-a]");if(!b)return;const a=b.dataset.a;
 if(a==="col"){sel[b.dataset.id]=+b.dataset.i;return render()}
 const k=b.dataset.k,m=byId(k.split("|")[0]),q=cart[k]||0,T=total(m.id),st=stepOf(m);
-if(a==="del")delete cart[k];if(a==="add"){const v=addQty(m);if(!v)return;cart[k]=q+v;added=k;clearTimeout(addedT);addedT=setTimeout(()=>{added=null;syncDraft()},1300)}
+if(a==="del")delete cart[k];if(a==="add"){const v=addQty(m);if(!v)return;cart[k]=q+v;draft[m.id]="";added=k;clearTimeout(addedT);addedT=setTimeout(()=>{added=null;syncDraft()},1300)}
 if(a==="inc")cart[k]=q+st;
 if(a==="dec"){const nq=q-st;if(nq<=0||(T===q&&T-st<minOf(m)))delete cart[k];else cart[k]=nq}
 render()});

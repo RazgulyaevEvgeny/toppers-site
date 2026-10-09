@@ -120,7 +120,7 @@ x.drawImage(R.domElement,SZ*.12,SZ*.06,SZ*.76,SZ*.76,0,0,200,200);
 v.col.copy(oc);v.rot=or;v.dirty=true;if(LIVE)LIVE.dirty=true;return TH[k]=c.toDataURL("image/jpeg",.86)}
 
 /* ---------- большой просмотр ---------- */
-document.body.insertAdjacentHTML("beforeend",'<div class="m3" id="m3" hidden role="dialog" aria-modal="true" aria-label="Просмотр 3D-модели"><div class="m3b"><div class="m3h"><b id="m3t"></b><button class="m3x" id="m3x" aria-label="Закрыть">✕</button></div><div class="m3c v3" id="m3c"></div><div class="m3f"><div id="m3s"></div><p>Потяните, чтобы повернуть. Колёсико или щипок для масштаба.</p></div></div></div>');
+document.body.insertAdjacentHTML("beforeend",'<div class="m3" id="m3" hidden role="dialog" aria-modal="true" aria-label="Просмотр 3D-модели"><div class="m3b"><div class="m3h"><b id="m3t"></b><button class="m3x" id="m3x" aria-label="Закрыть">✕</button></div><div class="m3c v3" id="m3c"></div><div class="m3f"><div id="m3s"></div><div class="m3q" id="m3q"></div><p>Потяните, чтобы повернуть. Колёсико или щипок для масштаба.</p></div></div></div>');
 let big=null;
 function openBig(id){const v=state(id),m=byId(id);v.url=m.m3;closeBig();
 const go=()=>{if(v.st!=="ready")return;
@@ -146,7 +146,7 @@ const dt=b.lt?Math.min(t-b.lt,60):16;b.lt=t;if(!b.drag&&!b.manual&&!still){b.ph+
 S.mat.color.copy(b.col);S.grp.rotation.y=b.rot;S.piv.rotation.x=b.tilt;r.render(S.s,S.cam)};
 b.raf=requestAnimationFrame(loop)};
 if(v.st==="ready")go();else{want(v);const t0=Date.now(),w=setInterval(()=>{if(v.st==="ready"){clearInterval(w);go()}else if(Date.now()-t0>15000)clearInterval(w)},120)}}
-function refreshBig(){if(!big)return;const m=byId(big.id);$("#m3s").innerHTML=swatches(m);big.tgt.set(colorsOf(m)[sel[m.id]].c).convertSRGBToLinear()}
+function refreshBig(){if(!big)return;const m=byId(big.id);$("#m3s").innerHTML=swatches(m);$("#m3q").innerHTML=qbox(m)+noteHTML(m,st(m));if(window.syncDraft)syncDraft();big.tgt.set(colorsOf(m)[sel[m.id]].c).convertSRGBToLinear()}
 function closeBig(){const b=big;if(b){big=null;cancelAnimationFrame(b.raf);b.c.remove();try{b.r.forceContextLoss();b.r.dispose()}catch(e){}}$("#m3").hidden=true;document.documentElement.style.overflow=""}
 document.addEventListener("click",e=>{const z=e.target.closest("[data-z3]");if(z){openBig(z.dataset.z3);return}if(e.target.id==="m3"||e.target.closest("#m3x"))closeBig()});
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("#m3").hidden)closeBig()});

@@ -21,7 +21,7 @@ try:
     print("pig colour:",pg.evaluate("document.querySelectorAll('.item')[1].querySelector('.cn').textContent"),"still has canvas:",pg.evaluate("!!document.querySelectorAll('.item')[1].querySelector('canvas.cv3')"))
     # add to cart 2 items, set qty
     pg.evaluate("document.querySelectorAll('.item')[1].querySelector('.add').click()"); pg.wait_for_timeout(300)
-    pg.evaluate("(()=>{const q=document.querySelectorAll('.item')[1].querySelector('.qn');q.value='60';q.dispatchEvent(new Event('change',{bubbles:true}))})()"); pg.wait_for_timeout(500)
+    pg.evaluate("(()=>{const q=document.querySelectorAll('.item')[1].querySelector('.qp');q.value='60';q.dispatchEvent(new Event('change',{bubbles:true}))})()"); pg.wait_for_timeout(500)
     pg.evaluate("document.querySelector('#openCart').click()"); pg.wait_for_timeout(700)
     src=pg.evaluate("document.querySelector('#list .rp img').src.slice(0,30)"); print("cart thumb:",src)
     pg.screenshot(path="/home/claude/v/AT_cart.png")

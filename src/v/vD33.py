@@ -24,6 +24,8 @@ CP=_r(CP,'$("#grid").innerHTML=MODELS.map(card).join("");','renderGrid();mount3d
 CP=_r(CP,'<div class="qty"><button data-a="dec" data-k="${l.k}"','<div class="ctl"><div class="qty"><button data-a="dec" data-k="${l.k}"',"ctl1")
 CP=_r(CP,'aria-label="Больше">+</button></div></div>`}).join("")','aria-label="Больше">+</button></div><button class="del" data-a="del" data-k="${l.k}" aria-label="Удалить позицию" title="Удалить"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12.2a2 2 0 0 0 2 1.8h6a2 2 0 0 0 2-1.8L18 7M9 7V4.5A1.5 1.5 0 0 1 10.5 3h3A1.5 1.5 0 0 1 15 4.5V7"/></svg></button></div></div>`}).join("")',"ctl2")
 CP=_r(CP,'if(a==="add")cart[k]=addQty(m,k);','if(a==="del")delete cart[k];if(a==="add")cart[k]=addQty(m,k);',"del")
+CP=_r(CP,'if(a==="add")cart[k]=addQty(m,k);','if(a==="add"){const v=addQty(m);if(!v)return;cart[k]=q+v;added=k;clearTimeout(addedT);addedT=setTimeout(()=>{added=null;syncDraft()},1300)}',"addq")
+CP=_r(CP,'renderGrid();mount3d();watchVis();','renderGrid();syncDraft();mount3d();watchVis();',"sync")
 common.CORE_POST=CP
 CPRE=common.CORE_PRE
 CPRE=_r(CPRE,'const minOf=m=>m.minQty||CONFIG.minQty','const minOf=m=>0',"minOf")
@@ -44,13 +46,15 @@ CPRE=fixmodels(CPRE)
 common.CORE_PRE=CPRE
 HP=common.HELPERS
 a=HP.index("const ctrl=");b=HP.index("\n",a)
-HP=HP[:a]+r'''const ctrl=(m,s)=>s.q?`<div class="qty"><button data-a="dec" data-k="${s.k}" aria-label="Меньше">−</button><span class="qw"><input class="qn" type="text" inputmode="numeric" value="${s.q}" data-k="${s.k}" aria-label="Количество, шт" autocomplete="off"><span>шт</span></span><button data-a="inc" data-k="${s.k}" aria-label="Больше">+</button></div>`:`<button class="add" data-a="add" data-k="${s.k}">Добавить</button>`;'''+HP[b:]
+HP=HP[:a]+r'''const draft={};
+const dget=m=>draft[m.id]===undefined?CONFIG.minQty:draft[m.id];
+const qbox=m=>{if(!m.custom&&colorsOf(m)[sel[m.id]].na)return `<button class="add" disabled>Цвета нет в наличии</button>`;return `<div class="addrow"><div class="qty dq"><button type="button" data-dq="-1" data-m="${m.id}" aria-label="Меньше">−</button><span class="qw"><input class="qn qp" type="text" inputmode="numeric" data-m="${m.id}" aria-label="Сколько штук добавить" autocomplete="off"><span>шт</span></span><button type="button" data-dq="1" data-m="${m.id}" aria-label="Больше">+</button></div><button class="add" data-a="add" data-m="${m.id}" data-k="${key(m.id,sel[m.id])}"><span class="al">Добавить</span></button></div>`};
+const ctrl=(m,s)=>qbox(m);'''+HP[b:]
 HP=_r(HP,' От ${minOf(m)} шт, шаг ${stepOf(m)} шт.','',"ct")
 HP=_r(HP,'s.T&&pick(tiersOf(m),s.T)===x','s.T>=x.from&&pick(tiersOf(m),s.T)===x',"ison")
 HP=_r(HP,'<button class="dot${i===sel[m.id]?" on":""}"','<button class="dot${i===sel[m.id]?" on":""}${c.na?" na":""}"',"na")
 HP=_r(HP,'title="${c.n}"></button>','title="${c.n}${c.na?" — нет в наличии":""}"></button>',"natitle")
 HP=_r(HP,'<div class="cn">Цвет: ${cs[sel[m.id]].n}</div>','<div class="cn">Цвет: ${cs[sel[m.id]].n}${cs[sel[m.id]].na?" · <b class=\\"nas\\">нет в наличии</b>":""}</div>',"cn")
-HP=_r(HP,'`<button class="add" data-a="add" data-k="${s.k}">Добавить</button>`;','(!m.custom&&colorsOf(m)[sel[m.id]].na)?`<button class="add" disabled>Цвета нет в наличии</button>`:`<button class="add" data-a="add" data-k="${s.k}">Добавить</button>`;',"ctrlna")
 _a=HP.index("const photo=");_b=HP.index("\n",_a)
 HP=HP[:_a]+r'''const photo=m=>{const i=MODELS.indexOf(m),ea=i<8,im=`<img ${ea?(i<4?'fetchpriority="high"':''):'loading="lazy"'} decoding="async" width="420" height="420" src="${m.img}" alt="${m.name}, топпер на крышке стакана">`;
 if(!(m.m3&&gl3)||m.custom)return im;const c=colorsOf(m)[sel[m.id]].c;return `<span class="pt">${im}<i class="tn" style="background:${c};-webkit-mask-image:url(${m.img});mask-image:url(${m.img})"></i></span>`};'''+HP[_b:]
@@ -195,7 +199,7 @@ canvas.spoil{position:absolute;inset:0;width:100%;height:100%;z-index:1}
 #barL{position:absolute;top:-6px;right:-6px;min-width:24px;height:24px;padding:0 6px;border-radius:12px;background:#fff;color:var(--blue);font:700 12px/24px var(--f);text-align:center;box-shadow:0 0 0 2px var(--blue)}
 #barL:empty{display:none}
 .empty{margin:14px 0 0;padding:18px;border-radius:20px;background:var(--tile);color:var(--muted);font-size:14px}
-.addrow{display:flex;gap:6px}.addrow .add{flex:1;min-width:0;padding:0 10px}
+.addrow{display:flex;flex-direction:column;gap:8px}.addrow .add{min-width:0;padding:0 10px}.add.ok{background:#1fa463}.add.ok:hover{background:#1fa463}.qp{width:54px}
 .qw{display:inline-flex;align-items:center;gap:4px;flex:none}
 .pre{background:var(--tile);border-radius:999px;height:52px;padding:0 14px}
 .qn{width:46px;text-align:center;border:0;background:transparent;font:700 16px var(--f);padding:0;border-radius:8px;color:var(--ink);font-variant-numeric:tabular-nums}
@@ -435,13 +439,13 @@ button{-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:tra
 .b3d:hover{background:var(--blue);color:#fff}.b3d:active{scale:.94}
 .m3{position:fixed;inset:0;z-index:80;background:rgba(18,26,94,.5);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;padding:12px;overflow:auto}
 .m3[hidden]{display:none}
-.m3b{width:min(100%,calc(100vh - 170px),720px);background:var(--paper);border-radius:28px;padding:14px 14px 16px;box-shadow:0 30px 80px rgba(10,16,70,.4);animation:m3in .35s var(--ease) both}
+.m3b{width:min(100%,calc(100vh - 260px),720px);background:var(--paper);border-radius:28px;padding:14px 14px 16px;box-shadow:0 30px 80px rgba(10,16,70,.4);animation:m3in .35s var(--ease) both}
 @keyframes m3in{from{opacity:0;scale:.92;translate:0 16px}}
 .m3h{display:flex;align-items:center;justify-content:space-between;padding:2px 4px 12px}.m3h b{font:800 22px var(--f);letter-spacing:-.03em}
 .m3x{width:40px;height:40px;border-radius:50%;background:var(--tile);font-size:16px;flex:none}.m3x:hover{background:var(--blue);color:#fff}
 .m3c{position:relative;aspect-ratio:1/1;border-radius:22px;overflow:hidden;}
 .cv3.big{touch-action:none}
-.m3f{padding:12px 4px 0}.m3f .cn{margin-top:8px}.m3f p{margin:10px 0 0;font-size:12.5px;color:var(--muted)}
+.m3q{margin-top:12px}.m3q .addrow{flex-direction:row;flex-wrap:wrap}.m3q .addrow .qty{flex:1 1 150px}.m3q .addrow .add{flex:1.5 1 160px}.m3q .sub{margin-top:8px;text-align:center}.m3f{padding:12px 4px 0}.m3f .cn{margin-top:8px}.m3f p{margin:10px 0 0;font-size:12.5px;color:var(--muted)}
 @media(max-width:759px){.m3b{border-radius:22px;padding:10px 10px 14px}.m3h b{font-size:18px}.b3d{top:8px;right:8px;padding:6px 9px 6px 8px;font-size:11px}}
 
 .tg{position:absolute;z-index:3;top:10px;left:10px;display:inline-flex;align-items:center;gap:5px;padding:6px 12px 6px 9px;border-radius:999px;background:rgba(255,255,255,.9);color:var(--ink);font:700 12px/1 var(--f);box-shadow:0 4px 14px rgba(10,16,70,.22);pointer-events:none;white-space:nowrap}
@@ -584,12 +588,15 @@ ms.forEach((m,i)=>{if(got[m.id]!==undefined)return;const bad=new Set();for(let d
 ms.forEach(m=>{sel[m.id]=got[m.id]})}
 const TAGS={tykva:["🎃","Хэллоуин"],ghost_hat:["🎃","Хэллоуин"],ghost:["🎃","Хэллоуин"],ghost_scarf:["🎃","Хэллоуин"],ghost_broom:["🎃","Хэллоуин"],heart_knit:["🔥","Хит"],pig:["🐾","Животные"],cat:["🐾","Животные"]};
 const tg=m=>{const t=TAGS[m.id];return t?`<span class="tg${t[1]==="Хит"?" hit":""}" role="img" aria-label="${t[1]}" title="${t[1]}"><i aria-hidden="true">${t[0]}</i></span>`:""};
-const draft={};
 const fixQ=(m,v)=>{const st=stepOf(m);return Math.ceil((parseInt(String(v).replace(/\D/g,""),10)||0)/st)*st};
-function addQty(m,k){const T=total(m.id),st=stepOf(m),need=Math.max(st,Math.ceil((minOf(m)-T)/st)*st),v=fixQ(m,draft[m.id]);delete draft[m.id];return Math.max(v,need)}
-document.addEventListener("input",e=>{const t=e.target;if(t.classList&&t.classList.contains("qp"))draft[t.dataset.m]=t.value});
-document.addEventListener("change",e=>{const t=e.target;if(!t.classList||!t.classList.contains("qn")||t.classList.contains("qp"))return;const k=t.dataset.k,m=byId(k.split("|")[0]),q=cart[k]||0,T=total(m.id),st=stepOf(m),v=fixQ(m,t.value);if(!v)delete cart[k];else cart[k]=Math.max(v,Math.ceil((minOf(m)-(T-q))/st)*st);render()});
-document.addEventListener("keydown",e=>{const t=e.target;if(e.key!=="Enter"||!t.classList||!t.classList.contains("qn"))return;e.preventDefault();if(t.classList.contains("qp"))t.closest(".addrow").querySelector(".add").click();else t.blur()});
+function addQty(m){return fixQ(m,dget(m))}
+let added=null,addedT=0;
+function syncDraft(){document.querySelectorAll(".qp").forEach(i=>{if(document.activeElement!==i)i.value=dget(byId(i.dataset.m))});
+document.querySelectorAll("button.add[data-m]").forEach(b=>{const m=byId(b.dataset.m),v=addQty(m),l=b.querySelector(".al");if(!l)return;const ok=added===b.dataset.k;b.disabled=!v;b.classList.toggle("ok",ok);const t=ok?"Добавлено ✓":v?`Добавить ${v} шт`:"Введите количество";if(l.textContent!==t)l.textContent=t})}
+document.addEventListener("click",e=>{const b=e.target.closest("button[data-dq]");if(!b)return;const m=byId(b.dataset.m),st=stepOf(m);draft[m.id]=Math.max(st,addQty(m)+(+b.dataset.dq)*st);const i=b.parentNode.querySelector(".qp");if(i)i.value=draft[m.id];syncDraft()});
+document.addEventListener("input",e=>{const t=e.target;if(!t.classList||!t.classList.contains("qp"))return;const v=t.value.replace(/\D/g,"").slice(0,5);if(v!==t.value)t.value=v;draft[t.dataset.m]=v;syncDraft()});
+document.addEventListener("change",e=>{const t=e.target;if(!t.classList||!t.classList.contains("qp"))return;const m=byId(t.dataset.m),v=addQty(m);draft[m.id]=v?v:"";t.value=draft[m.id];syncDraft()});
+document.addEventListener("keydown",e=>{const t=e.target;if(e.key!=="Enter"||!t.classList||!t.classList.contains("qp"))return;e.preventDefault();const b=t.closest(".addrow").querySelector(".add");t.blur();b.click()});
 const GC={};
 function renderGrid(){const g=$("#grid");MODELS.forEach(m=>{const h=card(m),e=GC[m.id];const mk=()=>{const t=document.createElement("template");t.innerHTML=h;return t.content.firstElementChild};
 if(!e){const el=mk();GC[m.id]={h,el};g.append(el)}else if(e.h!==h){const el=mk();e.el.replaceWith(el);e.el=el;e.h=h}})}
@@ -611,7 +618,7 @@ const g=c.getContext("2d"),T=still?0:t/1000;g.setTransform(d,0,0,d,0,0);g.clearR
 for(let i=0;i<SP.length;i+=2){const q=SP[i];let x=(q.x+Math.cos(q.a)*q.v*T)%1,y=(q.y+Math.sin(q.a)*q.v*T)%1;if(x<0)x+=1;if(y<0)y+=1;g.globalAlpha=.12+.88*Math.pow(.5+.5*Math.sin(T*q.f+q.p),2);const s=q.r*1.8;g.fillRect(x*w-s/2,y*h-s/2,s,s)}})}
 const EMO={ghost_scarf:"👻",ghost_broom:"🧹",heart_knit:"🧶",tykva:"🎃",ghost_hat:"👻",ghost:"👻",lamb:"🐑",cat:"🐱",pig:"🐷",heart:"❤️",custom:"✨"};
 document.addEventListener("click",e=>{const b=e.target.closest("button[data-a=add],button[data-a=inc]");if(!b||still)return;const id=b.dataset.k.split("|")[0],em=EMO[id]||"✨",r=b.getBoundingClientRect(),x0=r.left+r.width/2,y0=r.top+r.height/2;
-for(let i=0;i<9;i++){const p=document.createElement("span");p.textContent=em;p.setAttribute("aria-hidden","true");p.style.cssText=`position:fixed;left:${x0}px;top:${y0}px;z-index:60;pointer-events:none;font-size:${20+Math.random()*16}px;line-height:1;will-change:transform,opacity`;document.body.append(p);
+for(let i=0;i<9;i++){const p=document.createElement("span");p.textContent=em;p.setAttribute("aria-hidden","true");p.style.cssText=`position:fixed;left:${x0}px;top:${y0}px;z-index:95;pointer-events:none;font-size:${20+Math.random()*16}px;line-height:1;will-change:transform,opacity`;document.body.append(p);
 const a=-Math.PI/2+(Math.random()-.5)*2.4,d=70+Math.random()*120,dx=Math.cos(a)*d,dy=Math.sin(a)*d,rot=(Math.random()-.5)*80;
 p.animate([{transform:"translate(-50%,-50%) scale(.3) rotate(0deg)",opacity:1},{transform:`translate(calc(-50% + ${dx}px),calc(-50% + ${dy}px)) scale(1.1) rotate(${rot}deg)`,opacity:1,offset:.6},{transform:`translate(calc(-50% + ${dx*1.1}px),calc(-50% + ${dy+60}px)) scale(.8) rotate(${rot*1.4}deg)`,opacity:0}],{duration:900+Math.random()*500,delay:i*30,easing:"cubic-bezier(.2,.7,.3,1)",fill:"both"}).onfinish=()=>p.remove()}});
 const spLoop=t=>{spoil(t);requestAnimationFrame(spLoop)};requestAnimationFrame(spLoop);

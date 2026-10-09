@@ -24,7 +24,7 @@ CP=_r(CP,'$("#grid").innerHTML=MODELS.map(card).join("");','renderGrid();mount3d
 CP=_r(CP,'<div class="qty"><button data-a="dec" data-k="${l.k}"','<div class="ctl"><div class="qty"><button data-a="dec" data-k="${l.k}"',"ctl1")
 CP=_r(CP,'aria-label="Больше">+</button></div></div>`}).join("")','aria-label="Больше">+</button></div><button class="del" data-a="del" data-k="${l.k}" aria-label="Удалить позицию" title="Удалить"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12.2a2 2 0 0 0 2 1.8h6a2 2 0 0 0 2-1.8L18 7M9 7V4.5A1.5 1.5 0 0 1 10.5 3h3A1.5 1.5 0 0 1 15 4.5V7"/></svg></button></div></div>`}).join("")',"ctl2")
 CP=_r(CP,'if(a==="add")cart[k]=addQty(m,k);','if(a==="del")delete cart[k];if(a==="add")cart[k]=addQty(m,k);',"del")
-CP=_r(CP,'if(a==="add")cart[k]=addQty(m,k);','if(a==="add"){const v=addQty(m);if(!v)return;cart[k]=q+v;draft[m.id]="";added=k;clearTimeout(addedT);addedT=setTimeout(()=>{added=null;syncDraft()},1300)}',"addq")
+CP=_r(CP,'if(a==="add")cart[k]=addQty(m,k);','if(a==="add"){const v=addQty(m);if(!v)return;cart[k]=q+v;draft[m.id]="";{const ae=document.activeElement;if(ae&&ae.classList&&ae.classList.contains("qp"))ae.blur()}added=k;clearTimeout(addedT);addedT=setTimeout(()=>{added=null;syncDraft()},1300)}',"addq")
 CP=_r(CP,'renderGrid();mount3d();watchVis();','renderGrid();syncDraft();mount3d();watchVis();',"sync")
 common.CORE_POST=CP
 CPRE=common.CORE_PRE

@@ -741,7 +741,7 @@ $("#wa").href=blk?"#":`https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponen
 document.addEventListener("click",e=>{const b=e.target.closest("button[data-a]");if(!b)return;const a=b.dataset.a;
 if(a==="col"){sel[b.dataset.id]=+b.dataset.i;return render()}
 const k=b.dataset.k,m=byId(k.split("|")[0]),q=cart[k]||0,T=total(m.id),st=stepOf(m);
-if(a==="del")delete cart[k];if(a==="add"){const v=addQty(m);if(!v)return;cart[k]=q+v;draft[m.id]="";added=k;clearTimeout(addedT);addedT=setTimeout(()=>{added=null;syncDraft()},1300)}
+if(a==="del")delete cart[k];if(a==="add"){const v=addQty(m);if(!v)return;cart[k]=q+v;draft[m.id]="";{const ae=document.activeElement;if(ae&&ae.classList&&ae.classList.contains("qp"))ae.blur()}added=k;clearTimeout(addedT);addedT=setTimeout(()=>{added=null;syncDraft()},1300)}
 if(a==="inc")cart[k]=q+st;
 if(a==="dec"){const nq=q-st;if(nq<=0||(T===q&&T-st<minOf(m)))delete cart[k];else cart[k]=nq}
 render()});

@@ -476,12 +476,12 @@ button{-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:tra
 
 .ph.v3{background:radial-gradient(closest-side at 50% 54%,#e6e8ee 0,rgba(230,232,238,.75) 52%,rgba(230,232,238,0) 100%);border-radius:0;overflow:visible}
 .ph.v3::after{display:none}
-.ph.v3 .b3d{top:6px;right:6px;gap:5px;padding:7px 12px 7px 9px;border-radius:12px;font-size:13px;box-shadow:0 3px 12px rgba(10,16,70,.18)}
+.ph.v3 .b3d{top:6px;right:6px;gap:5px;padding:7px 12px 7px 9px;border-radius:12px;font-size:13px;box-shadow:0 0 0 1px rgba(10,16,70,.07),0 1px 3px rgba(10,16,70,.14)}
 .ph.v3 .b3d svg{width:15px;height:15px}
-.ph.v3 .price{left:4px;bottom:4px}
+.ph.v3 .price{left:4px;bottom:4px;box-shadow:0 0 0 1px rgba(10,11,20,.07),0 1px 3px rgba(10,11,20,.12)}
 @media(max-width:759px){
 .ph.v3 .b3d{top:4px;right:4px;gap:4px;padding:6px 10px 6px 8px;border-radius:11px;font-size:12px}.ph.v3 .b3d svg{width:13px;height:13px}
-.ph.v3 .price{left:2px;bottom:2px}
+.ph.v3 .price{left:2px;bottom:2px;box-shadow:0 0 0 1px rgba(10,11,20,.08)}
 }
 
 .tp{padding:6px 10px;border-radius:13px}.tp span{font-size:11.5px}.tp b{font-size:15px}.tiers{gap:5px}

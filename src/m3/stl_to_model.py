@@ -1,62 +1,68 @@
-import numpy as np,json,base64
-from scipy.spatial import cKDTree
-def vnormals(v,f):
-    a,b,c=v[f[:,0]],v[f[:,1]],v[f[:,2]]
-    fn=np.cross(b-a,c-a)  # area-weighted
-    n=np.zeros_like(v)
-    for k in range(3): np.add.at(n,f[:,k],fn)
-    l=np.linalg.norm(n,axis=1,keepdims=True); l[l==0]=1
-    return n/l
-def part(rawv,rawf,dv,df):
-    n0=vnormals(rawv,rawf)
-    _,ix=cKDTree(rawv).query(dv); nn=n0[ix]
-    # fix winding of decimated faces to agree with vertex normals
-    a,b,c=dv[df[:,0]],dv[df[:,1]],dv[df[:,2]]
-    g=np.cross(b-a,c-a); avg=nn[df].sum(1)
-    flip=(g*avg).sum(1)<0
-    df=df.copy(); df[flip,1],df[flip,2]=df[flip,2].copy(),df[flip,1].copy()
-    return nn,df,flip.mean()
-
+"""STL -> models/<id>.json  (плавная пересборка через воксели + marching cubes).
+Подставка и фигурка объединяются в одну гладкую сетку: пилообразные края, дыры и «рваные» глаза
+от прежнего кластерного упрощения исчезают, нормали считаются по сглаженному полю.
+Запуск: python3 stl_to_model.py file.stl <id> [vox_mm=0.1] [step=2] [sigma_vox=1.2]"""
 import sys,json,base64,numpy as np
-sys.path.insert(0,"/home/claude/m3")
-from dec import decimate
-from scipy.sparse import coo_matrix
-from scipy.sparse.csgraph import connected_components
+from scipy import ndimage
+from skimage.measure import marching_cubes
+
 def read_stl(path):
     b=open(path,"rb").read(); n=int.from_bytes(b[80:84],"little")
     a=np.frombuffer(b[84:84+50*n],dtype=np.dtype([("n","<f4",3),("v","<f4",(3,3)),("a","<u2")]))
     V=a["v"].reshape(-1,3).astype(np.float64)
     u,inv=np.unique(np.round(V,4),axis=0,return_inverse=True)
     return u,inv.reshape(-1,3)
-def components(v,f):
-    e=np.vstack([f[:,[0,1]],f[:,[1,2]]])
-    g=coo_matrix((np.ones(len(e)),(e[:,0],e[:,1])),shape=(len(v),len(v)))
-    nc,lab=connected_components(g,directed=False); fl=lab[f[:,0]]
-    out=[]
-    for c in range(nc):
-        m=fl==c
-        if m.sum()<50: continue
-        ff=f[m]; used=np.unique(ff); rm=-np.ones(len(v),int); rm[used]=np.arange(len(used))
-        out.append((v[used],rm[ff]))
-    out.sort(key=lambda t:-len(t[1]))   # 0 = фигурка, 1 = подставка
-    return out
+
+def shell_points(v,f,h):
+    """Плотные точки на всех треугольниках (шаг <= h), чтобы оболочка была замкнутой."""
+    a,b,c=v[f[:,0]],v[f[:,1]],v[f[:,2]]
+    L=np.maximum.reduce([np.linalg.norm(b-a,axis=1),np.linalg.norm(c-b,axis=1),np.linalg.norm(a-c,axis=1)])
+    n=np.maximum(1,np.ceil(L/h).astype(int)); pts=[v]
+    for k in np.unique(n):
+        m=n==k; A,B,C=a[m],b[m],c[m]
+        ij=[(i,j) for i in range(k+1) for j in range(k+1-i)]
+        for i,j in ij:
+            w1,w2=i/k,j/k; pts.append(A*(1-w1-w2)+B*w1+C*w2)
+    return np.vstack(pts)
+
+def build(path,vox=0.1,step=2,sigma=1.0):
+    v,f=read_stl(path)
+    mn=v.min(0); mx=v.max(0)
+    pad=4
+    pts=shell_points(v,f,vox*0.6)
+    idx=np.floor((pts-mn)/vox).astype(int)+pad
+    shape=tuple(idx.max(0)+pad+1)
+    shell=np.zeros(shape,bool); shell[idx[:,0],idx[:,1],idx[:,2]]=True
+    pass
+    lab,_=ndimage.label(~shell)                              # 6-связная заливка снаружи
+    outside=lab==lab[0,0,0]
+    inside=~outside
+    # знаковое поле расстояния: гладкое, без «ступенек» вокселей
+    sdf=(ndimage.distance_transform_edt(outside)-ndimage.distance_transform_edt(inside)).astype(np.float32)
+    sdf=ndimage.gaussian_filter(sdf,sigma)
+    vv,ff,nn,_=marching_cubes(sdf,level=0.0,spacing=(vox,)*3,step_size=step)
+    vv=vv+mn-pad*vox
+    # ориентация граней: положительный объём = наружу
+    vol=np.einsum("ij,ij->i",vv[ff[:,0]],np.cross(vv[ff[:,1]],vv[ff[:,2]])).sum()/6
+    if vol<0: ff=ff[:,::-1]
+    # нормали должны смотреть наружу (по росту поля расстояния)
+    fn=np.cross(vv[ff[:,1]]-vv[ff[:,0]],vv[ff[:,2]]-vv[ff[:,0]]); mv=np.zeros_like(vv)
+    for k in range(3): np.add.at(mv,ff[:,k],fn)
+    if (mv*nn).sum()<0: nn=-nn
+    return vv,ff,nn,mn,mx
+
 if __name__=="__main__":
     path,mid=sys.argv[1],sys.argv[2]
-    ft=int(sys.argv[3]) if len(sys.argv)>3 else 30000
-    st=int(sys.argv[4]) if len(sys.argv)>4 else 2500
-    v,f=read_stl(path); comps=components(v,f)
-    print("components",[len(c[1]) for c in comps],flush=True)
-    targets=[ft]+[st]*(len(comps)-1)
-    parts=[((rv,rf),decimate(rv,rf,t)) for (rv,rf),t in zip(comps,targets)]
-    allv=np.vstack([p[1][0] for p in parts]); mn=allv.min(0); mx=allv.max(0)
+    vox=float(sys.argv[3]) if len(sys.argv)>3 else .1
+    step=int(sys.argv[4]) if len(sys.argv)>4 else 2
+    sg=float(sys.argv[5]) if len(sys.argv)>5 else 1.2
+    vv,ff,nn,mn,mx=build(path,vox,step,sg)
+    print("mesh verts",len(vv),"tris",len(ff),flush=True)
+    assert len(vv)<65536,"слишком много вершин: увеличьте step или vox"
     c=np.array([(mn[0]+mx[0])/2,(mn[1]+mx[1])/2,mn[2]]); sc=1/(mx-mn).max()
     P=lambda x:np.stack([x[:,0],x[:,2],-x[:,1]],1)
-    V=[];N=[];F=[];off=0
-    for (rv,rf),(dv,df) in parts:
-        nn,df2,fr=part(rv,rf,dv,df); print("part",len(df2),"flipped %.1f%%"%(fr*100),flush=True)
-        V.append(P((dv-c)*sc));N.append(P(nn));F.append(df2+off);off+=len(dv)
-    V=np.vstack(V);N=np.vstack(N);F=np.vstack(F)
-    assert len(V)<65536
+    V=P((vv-c)*sc); N=P(nn); N/=np.maximum(np.linalg.norm(N,axis=1,keepdims=True),1e-9)
+    F=ff.copy()
     out={"p":base64.b64encode(np.round(V*30000).astype("<i2").tobytes()).decode(),
          "q":base64.b64encode(np.round(N*127).astype("i1").tobytes()).decode(),
          "i":base64.b64encode(F.astype("<u2").flatten().tobytes()).decode()}

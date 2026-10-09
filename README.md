@@ -4,7 +4,7 @@
 - `src/` — исходники, из которых Claude собирает сайт.
   - `src/v/vD32.py` — сборщик страницы (+ `common.py`, `illus.py`, картинки, `final.html`)
   - `src/proj/` — 3D-движок `engine.js`, `catalog.json` (модели и цены), скрипты постеров и тестов
-  - `src/m3/` — конвейер STL/3MF → `models/<id>.json`
+  - `src/m3/` — конвейер STL → `models/<id>.json` (`stl_to_model.py`: сглаживание через воксели, подставка и фигурка в одной сетке)
   - `src/restore.sh` — разворачивает всё это в `/home/claude/...` в новой сессии
 
 ## Как вносить правки

@@ -137,7 +137,7 @@ const up=e=>{P.delete(e.pointerId);if(P.size)return;pd=0;b.drag=false};
 c.addEventListener("pointerup",up);c.addEventListener("pointercancel",up);
 c.addEventListener("wheel",e=>{e.preventDefault();b.manual=true;b.zoom=clamp(b.zoom*(1+e.deltaY*.0012),.4,1.4);place()},{passive:false});
 $("#m3t").textContent=m.name;$("#m3c").innerHTML='<div class="bls"><i class="bl b1"></i><i class="bl b2"></i><i class="bl b3"></i><i class="bl b4"></i></div><canvas class="spoil"></canvas>';$("#m3c").append(c);
-$("#m3").hidden=false;document.documentElement.style.overflow="hidden";
+$("#m3").hidden=false;document.documentElement.style.overflow="hidden";document.documentElement.classList.add("mo");
 b.col.set(colorsOf(m)[sel[id]].c).convertSRGBToLinear();b.tgt.copy(b.col);refreshBig();setTimeout(()=>$("#m3x").focus(),30);
 const loop=t=>{if(big!==b)return;b.raf=requestAnimationFrame(loop);
 const w=c.clientWidth,h=c.clientHeight;if(w!==b.w||h!==b.h){b.w=w;b.h=h;r.setPixelRatio(Math.min(devicePixelRatio||1,2));r.setSize(w,h,false);S.cam.aspect=w/h;S.cam.updateProjectionMatrix()}
@@ -147,7 +147,7 @@ S.mat.color.copy(b.col);S.grp.rotation.y=b.rot;S.piv.rotation.x=b.tilt;r.render(
 b.raf=requestAnimationFrame(loop)};
 if(v.st==="ready")go();else{want(v);const t0=Date.now(),w=setInterval(()=>{if(v.st==="ready"){clearInterval(w);go()}else if(Date.now()-t0>15000)clearInterval(w)},120)}}
 function refreshBig(){if(!big)return;const m=byId(big.id);$("#m3s").innerHTML=swatches(m);$("#m3q").innerHTML=qbox(m)+noteHTML(m,st(m));if(window.syncDraft)syncDraft();big.tgt.set(colorsOf(m)[sel[m.id]].c).convertSRGBToLinear()}
-function closeBig(){const b=big;if(b){big=null;cancelAnimationFrame(b.raf);b.c.remove();try{b.r.forceContextLoss();b.r.dispose()}catch(e){}}$("#m3").hidden=true;document.documentElement.style.overflow=""}
+function closeBig(){const b=big;if(b){big=null;cancelAnimationFrame(b.raf);b.c.remove();try{b.r.forceContextLoss();b.r.dispose()}catch(e){}}$("#m3").hidden=true;document.documentElement.classList.remove("mo");document.documentElement.style.overflow=""}
 document.addEventListener("click",e=>{const z=e.target.closest("[data-z3]");if(z){openBig(z.dataset.z3);return}if(e.target.id==="m3"||e.target.closest("#m3x"))closeBig()});
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("#m3").hidden)closeBig()});
 

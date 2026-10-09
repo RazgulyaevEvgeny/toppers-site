@@ -439,6 +439,7 @@ button{-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:tra
 .b3d:hover{background:var(--blue);color:#fff}.b3d:active{scale:.94}
 .m3{position:fixed;inset:0;z-index:80;background:rgba(18,26,94,.5);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;padding:12px;overflow:auto}
 .m3[hidden]{display:none}
+html.mo{background:#6b72b2}html.mo body{background:transparent}html.mo .shell,html.mo .bar{visibility:hidden}html.mo .m3{background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none}
 .m3b{width:min(100%,calc(100vh - 260px),720px);background:var(--paper);border-radius:28px;padding:14px 14px 16px;box-shadow:0 30px 80px rgba(10,16,70,.4);animation:m3in .35s var(--ease) both}
 @keyframes m3in{from{opacity:0;scale:.92;translate:0 16px}}
 .m3h{display:flex;align-items:center;justify-content:space-between;padding:2px 4px 12px}.m3h b{font:800 22px var(--f);letter-spacing:-.03em}
@@ -592,7 +593,7 @@ const fixQ=(m,v)=>{const st=stepOf(m);return Math.ceil((parseInt(String(v).repla
 function addQty(m){return fixQ(m,dget(m))}
 let added=null,addedT=0;
 function syncDraft(){document.querySelectorAll(".qp").forEach(i=>{if(document.activeElement!==i)i.value=dget(byId(i.dataset.m))});
-document.querySelectorAll("button.add[data-m]").forEach(b=>{const m=byId(b.dataset.m),v=addQty(m),l=b.querySelector(".al");if(!l)return;const ok=added===b.dataset.k;b.disabled=!v;b.classList.toggle("ok",ok);const t=ok?"Добавлено ✓":v?`Добавить ${v} шт`:"Введите количество";if(l.textContent!==t)l.textContent=t})}
+document.querySelectorAll("button.add[data-m]").forEach(b=>{const m=byId(b.dataset.m),v=addQty(m),l=b.querySelector(".al");if(!l)return;const ok=added===b.dataset.k;b.disabled=!v;b.classList.toggle("ok",ok);const t=ok?"Добавлено ✓":"Добавить";if(l.textContent!==t)l.textContent=t})}
 document.addEventListener("click",e=>{const b=e.target.closest("button[data-dq]");if(!b)return;const m=byId(b.dataset.m),st=stepOf(m);draft[m.id]=Math.max(st,addQty(m)+(+b.dataset.dq)*st);const i=b.parentNode.querySelector(".qp");if(i)i.value=draft[m.id];syncDraft()});
 document.addEventListener("input",e=>{const t=e.target;if(!t.classList||!t.classList.contains("qp"))return;const v=t.value.replace(/\D/g,"").slice(0,5);if(v!==t.value)t.value=v;draft[t.dataset.m]=v;syncDraft()});
 document.addEventListener("change",e=>{const t=e.target;if(!t.classList||!t.classList.contains("qp"))return;const m=byId(t.dataset.m),v=addQty(m);draft[m.id]=v?v:"";t.value=draft[m.id];syncDraft()});

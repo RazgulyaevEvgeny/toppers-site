@@ -667,9 +667,10 @@ head=('<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="vi
  '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
  +boot+style+pre+
  '<link id="fontcss" rel="stylesheet" href="%s" media="print" onload="this.media=\'all\'"><noscript><link rel="stylesheet" href="%s"></noscript>'%(FONTS,FONTS)+
- '<script src="three.min.js" defer></script><script src="engine.js" defer></script></head><body>')
+ '<script src="three.min.js" defer></script><script src="engine.js" defer></script><script src="crm-send.js" defer></script></head><body>')
 open(OUT+"/index.html","w",encoding="utf-8").write(head+st+'<script>window.__boot2&&__boot2()</script></body></html>')
 for f in("three.min.js","engine.js"): shutil.copy(PROJ+"/"+f,OUT+"/"+f)
+shutil.copy("/home/claude/v/crm-send.js",OUT+"/crm-send.js")  # заявки -> учёт заказов студии
 for d in("models","posters"):
     shutil.rmtree(OUT+"/"+d,ignore_errors=True); os.makedirs(OUT+"/"+d)
     for f in os.listdir(PROJ+"/"+d): shutil.copy("%s/%s/%s"%(PROJ,d,f),"%s/%s/%s"%(OUT,d,f))

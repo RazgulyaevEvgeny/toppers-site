@@ -412,7 +412,7 @@ html.mo{background:#6b72b2}html.mo body{background:transparent}html.mo .shell,ht
 .v3 .bls .bl{will-change:auto}
 
 .ph.slot .shd{position:absolute;z-index:1;left:50%;top:46%;width:42%;height:auto;translate:-50% -50%;rotate:-7deg;fill:#14197a;opacity:.34;filter:blur(3px);pointer-events:none}
-#custom .act{margin-top:0}
+#custom .act{margin-top:auto}.cst{margin:0;padding:0;list-style:none;counter-reset:c;display:flex;flex-direction:column;gap:8px}.cst li{counter-increment:c;display:flex;gap:9px;align-items:flex-start;font-size:13px;line-height:1.35;color:var(--ink)}.cst li::before{content:counter(c);flex:none;width:20px;height:20px;border-radius:50%;background:var(--tile);color:var(--blue);font:700 11px/20px var(--f);text-align:center}
 @media(max-width:759px){.ph.slot .shd{width:48%}}
 
 .ph.v3{background:radial-gradient(closest-side at 50% 54%,#e6e8ee 0,rgba(230,232,238,.75) 52%,rgba(230,232,238,0) 100%);border-radius:0;overflow:visible}
@@ -698,7 +698,7 @@ function card(m){const s=st(m),t=tiersOf(m);
 const txt=m.noPrice?"по запросу":fmt(unit(m,s.T||minOf(m))),chg=lp[m.id]!==undefined&&lp[m.id]!==txt;lp[m.id]=txt;
 const tag=`<span class="price${!m.noPrice&&s.T?" on":""}${chg?" pop":""}">${m.noPrice?txt:`${txt}<small>/шт</small>`}</span>`;
 const ph=m.custom?`<div class="ph slot" aria-hidden="true"><div class="bls"><i class="bl b1"></i><i class="bl b2"></i><i class="bl b3"></i><i class="bl b4"></i></div><canvas class="spoil"></canvas>${tag}</div>`:`<div class="ph${m.m3&&gl3?" v3":""}"${m.m3&&gl3?` data-v="${m.id}"`:""}>${photo(m)}${m.m3&&gl3?`<button class="b3d" type="button" data-z3="${m.id}" aria-label="Открыть 3D-просмотр"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"/></svg>3D</button>`:""}${tag}</div>`;
-const info=m.custom?`<p class="desc">${customText(m)}</p>`:`<div class="cap">Тираж → цена за шт, ₸</div><div class="tiers" style="--n:${t.length}">${t.map(x=>`<div class="tp${isOn(m,s,x)}"><span>${x.from}+</span><b>${x.price}<i>&nbsp;₸</i></b></div>`).join("")}</div>`;
+const info=m.custom?`<p class="desc">${customText(m)}</p><ol class="cst"><li>Пришлите логотип или рисунок в WhatsApp</li><li>Сделаем 3D-модель и согласуем с вами</li><li>Назовём цену и напечатаем тираж</li></ol>`:`<div class="cap">Тираж → цена за шт, ₸</div><div class="tiers" style="--n:${t.length}">${t.map(x=>`<div class="tp${isOn(m,s,x)}"><span>${x.from}+</span><b>${x.price}<i>&nbsp;₸</i></b></div>`).join("")}</div>`;
 return `<article class="item${m.nw?' nv':''}"${m.custom?' id="custom"':''}>${m.nw?'<span class="nw">Новинка</span>':''}${ph}<h3>${m.name}</h3>${info}${swatches(m)}<div class="act">${ctrl(m,s)}${noteHTML(m,s)}</div></article>`}
 {const w=CONFIG.brand.trim().split(/\s+/),a=document.createElement("span"),b=document.createElement("span"),h=$("#brand");a.className="w1";[...w.shift()].forEach((ch,i)=>{const l=document.createElement("span");l.className="lt";l.style.setProperty("--i",i);l.setAttribute("aria-hidden","true");l.textContent=ch;a.append(l)});b.className="w2";b.textContent=w.join(" ")+" ✨";h.textContent="";h.setAttribute("aria-label",CONFIG.brand);h.append(a,b)}
 {const r=$("#barL");let last="";new MutationObserver(()=>{const v=r.textContent;if(v===last)return;last=v;r.classList.remove("pop");void r.offsetWidth;r.classList.add("pop")}).observe(r,{childList:true,characterData:true,subtree:true})}

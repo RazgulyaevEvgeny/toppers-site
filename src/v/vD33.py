@@ -24,7 +24,8 @@ CP=_r(CP,'$("#grid").innerHTML=MODELS.map(card).join("");','renderGrid();mount3d
 CP=_r(CP,'<div class="qty"><button data-a="dec" data-k="${l.k}"','<div class="ctl"><div class="qty"><button data-a="dec" data-k="${l.k}"',"ctl1")
 CP=_r(CP,'aria-label="Больше">+</button></div></div>`}).join("")','aria-label="Больше">+</button></div><button class="del" data-a="del" data-k="${l.k}" aria-label="Удалить позицию" title="Удалить"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12.2a2 2 0 0 0 2 1.8h6a2 2 0 0 0 2-1.8L18 7M9 7V4.5A1.5 1.5 0 0 1 10.5 3h3A1.5 1.5 0 0 1 15 4.5V7"/></svg></button></div></div>`}).join("")',"ctl2")
 CP=_r(CP,'if(a==="add")cart[k]=addQty(m,k);','if(a==="del")delete cart[k];if(a==="add")cart[k]=addQty(m,k);',"del")
-CP=_r(CP,'if(a==="add")cart[k]=addQty(m,k);','if(a==="add"){const v=addQty(m);if(!v)return;cart[k]=q+v;draft[m.id]="";{const ae=document.activeElement;if(ae&&ae.classList&&ae.classList.contains("qp"))ae.blur()}added=k;clearTimeout(addedT);addedT=setTimeout(()=>{added=null;syncDraft()},1300)}',"addq")
+CP=_r(CP,'if(a==="add")cart[k]=addQty(m,k);','if(a==="add"){const v=addQty(m);if(!v||v<minAdd(m))return;cart[k]=q+v;draft[m.id]="";{const ae=document.activeElement;if(ae&&ae.classList&&ae.classList.contains("qp"))ae.blur()}added=k;clearTimeout(addedT);addedT=setTimeout(()=>{added=null;syncDraft()},1300)}',"addq")
+CP=_r(CP,'if(nq<=0||(T===q&&T-st<minOf(m)))delete cart[k]','if(nq<=0||(m.custom&&nq<CUSTOM_MIN)||(T===q&&T-st<minOf(m)))delete cart[k]',"dec")
 CP=_r(CP,'renderGrid();mount3d();watchVis();','renderGrid();syncDraft();mount3d();watchVis();',"sync")
 common.CORE_POST=CP
 CPRE=common.CORE_PRE
@@ -41,16 +42,18 @@ def fixmodels(t):
         return '  {id:%s,name:%s,def:"Белый",tiers:[%s],img:%s,m3:%s%s},'%(json.dumps(c["id"]),json.dumps(c["name"],ensure_ascii=False),tiers,json.dumps("posters/%s.webp"%c["id"]),json.dumps("models/%s.bin"%c["id"]),((",fix:"+json.dumps(c["fix"],ensure_ascii=False)) if c.get("fix") else "")+(",nw:1" if c.get("new") else ""))
     i=t.index("const MODELS=["); j=t.index("\n];",i)
     blk=t[i:j]; cu=[l for l in blk.split("\n") if l.strip().startswith('{id:"custom"')][0].rstrip(",")
-    return t[:i]+"const MODELS=[\n"+cu+",\n"+"\n".join(ln(c) for c in cat)+t[j:]  # «Заказать свою модель» всегда первая
+    return t[:i]+"const MODELS=[\n"+"\n".join(ln(c) for c in cat)+"\n"+cu+t[j:]  # «Заказать свою модель» всегда последняя
 CPRE=fixmodels(CPRE)
 common.CORE_PRE=CPRE
 HP=common.HELPERS
 a=HP.index("const ctrl=");b=HP.index("\n",a)
-HP=HP[:a]+r'''const draft={};
-const dget=m=>draft[m.id]===undefined?CONFIG.minQty:draft[m.id];
+HP=HP[:a]+r'''const CUSTOM_MIN=100;
+const draft={};
+const minAdd=m=>m.custom&&!total(m.id)?CUSTOM_MIN:0;
+const dget=m=>draft[m.id]===undefined?(m.custom?CUSTOM_MIN:CONFIG.minQty):draft[m.id];
 const qbox=m=>{if(!m.custom&&colorsOf(m)[sel[m.id]].na)return `<button class="add" disabled>Цвета нет в наличии</button>`;return `<div class="addrow"><div class="qty dq"><button type="button" data-dq="-1" data-m="${m.id}" aria-label="Меньше">−</button><span class="qw"><input class="qn qp" type="text" inputmode="numeric" placeholder="0" data-m="${m.id}" aria-label="Сколько штук добавить" autocomplete="off"><span>шт</span></span><button type="button" data-dq="1" data-m="${m.id}" aria-label="Больше">+</button></div><button class="add" data-a="add" data-m="${m.id}" data-k="${key(m.id,sel[m.id])}"><span class="al">Добавить</span></button></div>`};
 const ctrl=(m,s)=>qbox(m);'''+HP[b:]
-HP=_r(HP,' От ${minOf(m)} шт, шаг ${stepOf(m)} шт.','',"ct")
+HP=_r(HP,' От ${minOf(m)} шт, шаг ${stepOf(m)} шт.',' Минимальный тираж — ${CUSTOM_MIN} шт.',"ct")
 HP=_r(HP,'s.T&&pick(tiersOf(m),s.T)===x','s.T>=x.from&&pick(tiersOf(m),s.T)===x',"ison")
 HP=_r(HP,'<button class="dot${i===sel[m.id]?" on":""}"','<button class="dot${i===sel[m.id]?" on":""}${c.na?" na":""}"',"na")
 HP=_r(HP,'title="${c.n}"></button>','title="${c.n}${c.na?" — нет в наличии":""}"></button>',"natitle")
@@ -594,8 +597,8 @@ const fixQ=(m,v)=>{const st=stepOf(m);return Math.ceil((parseInt(String(v).repla
 function addQty(m){return fixQ(m,dget(m))}
 let added=null,addedT=0;
 function syncDraft(){document.querySelectorAll(".qp").forEach(i=>{if(document.activeElement!==i)i.value=dget(byId(i.dataset.m))});
-document.querySelectorAll("button.add[data-m]").forEach(b=>{const m=byId(b.dataset.m),v=addQty(m),l=b.querySelector(".al");if(!l)return;const ok=added===b.dataset.k;b.disabled=!v;b.classList.toggle("ok",ok);const t=ok?"Добавлено ✓":"Добавить";if(l.textContent!==t)l.textContent=t})}
-document.addEventListener("click",e=>{const b=e.target.closest("button[data-dq]");if(!b)return;const m=byId(b.dataset.m),st=stepOf(m);{const nv=addQty(m)+(+b.dataset.dq)*st;draft[m.id]=nv>0?nv:""}const i=b.parentNode.querySelector(".qp");if(i)i.value=draft[m.id];syncDraft()});
+document.querySelectorAll("button.add[data-m]").forEach(b=>{const m=byId(b.dataset.m),v=addQty(m),l=b.querySelector(".al");if(!l)return;const ok=added===b.dataset.k;const mn=minAdd(m),low=v>0&&v<mn;b.disabled=!v||low;b.classList.toggle("ok",ok);const t=ok?"Добавлено ✓":low?`Минимум ${mn} шт`:"Добавить";if(l.textContent!==t)l.textContent=t})}
+document.addEventListener("click",e=>{const b=e.target.closest("button[data-dq]");if(!b)return;const m=byId(b.dataset.m),st=stepOf(m);{const nv=addQty(m)+(+b.dataset.dq)*st,mn=minAdd(m);draft[m.id]=nv>=mn&&nv>0?nv:(+b.dataset.dq<0?"":mn||st)}const i=b.parentNode.querySelector(".qp");if(i)i.value=draft[m.id];syncDraft()});
 document.addEventListener("input",e=>{const t=e.target;if(!t.classList||!t.classList.contains("qp"))return;const v=t.value.replace(/\D/g,"").slice(0,5);if(v!==t.value)t.value=v;draft[t.dataset.m]=v;syncDraft()});
 document.addEventListener("change",e=>{const t=e.target;if(!t.classList||!t.classList.contains("qp"))return;const m=byId(t.dataset.m),v=addQty(m);draft[m.id]=v?v:"";t.value=draft[m.id];syncDraft()});
 document.addEventListener("keydown",e=>{const t=e.target;if(e.key!=="Enter"||!t.classList||!t.classList.contains("qp"))return;e.preventDefault();const b=t.closest(".addrow").querySelector(".add");t.blur();b.click()});

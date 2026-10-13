@@ -629,7 +629,6 @@ const CONFIG={
 };
 // у модели можно задать свои leadTimes, tiers, colors, minQty, step
 const MODELS=[
-  {id:"custom",name:"Заказать свою модель",def:"Белый",custom:true,noPrice:true,leadTimes:[{from:1,text:"согласуем после макета"}]},
   {id:"chick",name:"Цыплёнок",def:"Белый",tiers:[{from:50,price:32},{from:100,price:31},{from:200,price:30}],img:"posters/chick.webp",m3:"models/chick.bin",fix:"Жёлтый",nw:1},
   {id:"bat",name:"Летучая мышка",def:"Белый",tiers:[{from:50,price:35},{from:100,price:34},{from:200,price:33}],img:"posters/bat.webp",m3:"models/bat.bin",fix:"Чёрный",nw:1},
   {id:"ghost_hat",name:"Призрак в шапке",def:"Белый",tiers:[{from:50,price:33},{from:100,price:32},{from:200,price:31}],img:"posters/ghost_hat.webp",m3:"models/ghost_hat.bin"},
@@ -644,6 +643,7 @@ const MODELS=[
   {id:"kitten",name:"Кошечка",def:"Белый",tiers:[{from:50,price:33},{from:100,price:32},{from:200,price:31}],img:"posters/kitten.webp",m3:"models/kitten.bin"},
   {id:"witch_hat",name:"Ведьмина шляпа",def:"Белый",tiers:[{from:50,price:33},{from:100,price:32},{from:200,price:31}],img:"posters/witch_hat.webp",m3:"models/witch_hat.bin"},
   {id:"skull",name:"Черепок",def:"Белый",tiers:[{from:50,price:33},{from:100,price:32},{from:200,price:31}],img:"posters/skull.webp",m3:"models/skull.bin"},
+  {id:"custom",name:"Заказать свою модель",def:"Белый",custom:true,noPrice:true,leadTimes:[{from:1,text:"согласуем после макета"}]}
 ];
 // ================================================
 const $=s=>document.querySelector(s),cart={},sel={};
@@ -662,12 +662,14 @@ $("#brand").textContent=CONFIG.brand;$("#tag").textContent=CONFIG.tagline;
 const PLUS='<svg viewBox="0 0 48 48" width="44" height="44" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M24 8v32M8 24h32"/></svg>';
 const st=m=>{const k=key(m.id,sel[m.id]),q=cart[k]||0,T=total(m.id),mn=minOf(m);return{k,q,T,mn,addQ:Math.max(stepOf(m),mn-T),ok:!T||T>=mn}};
 const swatches=m=>{if(m.custom)return"";const cs=colorsOf(m);return `<div class="sw" role="group" aria-label="Цвет">${cs.map((c,i)=>`<button class="dot${i===sel[m.id]?" on":""}${c.na?" na":""}" style="--c:${c.c}" data-a="col" data-id="${m.id}" data-i="${i}" aria-label="${c.n}" aria-pressed="${i===sel[m.id]}" title="${c.n}${c.na?" — нет в наличии":""}"></button>`).join("")}</div><div class="cn">Цвет: ${cs[sel[m.id]].n}${cs[sel[m.id]].na?" · <b class=\"nas\">нет в наличии</b>":""}</div>`};
+const CUSTOM_MIN=100;
 const draft={};
-const dget=m=>draft[m.id]===undefined?CONFIG.minQty:draft[m.id];
+const minAdd=m=>m.custom&&!total(m.id)?CUSTOM_MIN:0;
+const dget=m=>draft[m.id]===undefined?(m.custom?CUSTOM_MIN:CONFIG.minQty):draft[m.id];
 const qbox=m=>{if(!m.custom&&colorsOf(m)[sel[m.id]].na)return `<button class="add" disabled>Цвета нет в наличии</button>`;return `<div class="addrow"><div class="qty dq"><button type="button" data-dq="-1" data-m="${m.id}" aria-label="Меньше">−</button><span class="qw"><input class="qn qp" type="text" inputmode="numeric" placeholder="0" data-m="${m.id}" aria-label="Сколько штук добавить" autocomplete="off"><span>шт</span></span><button type="button" data-dq="1" data-m="${m.id}" aria-label="Больше">+</button></div><button class="add" data-a="add" data-m="${m.id}" data-k="${key(m.id,sel[m.id])}"><span class="al">Добавить</span></button></div>`};
 const ctrl=(m,s)=>qbox(m);
 const noteHTML=(m,s)=>{const n=!s.T?"":!s.ok?`Минимум ${s.mn} шт, добавьте ещё ${s.mn-s.T}`:m.custom?`В заказе ${s.T} шт, цену назовём после макета`:`В заказе ${s.T} шт · ${fmt(unit(m,s.T))}/шт`;return n?`<div class="sub${s.ok?"":" warn"}">${n}</div>`:""};
-const customText=m=>`Принесите логотип или персонажа, напечатаем по вашему макету.`;
+const customText=m=>`Принесите логотип или персонажа, напечатаем по вашему макету. Минимальный тираж — ${CUSTOM_MIN} шт.`;
 const isOn=(m,s,x)=>s.T>=x.from&&pick(tiersOf(m),s.T)===x?" on":"";
 const photo=m=>{const i=MODELS.indexOf(m),ea=i<8,im=`<img ${ea?(i<4?'fetchpriority="high"':''):'loading="lazy"'} decoding="async" width="420" height="420" src="${m.img}" alt="${m.name}, топпер на крышке стакана">`;
 if(!(m.m3&&gl3)||m.custom)return im;const c=colorsOf(m)[sel[m.id]].c;return `<span class="pt">${im}<i class="tn" style="background:${c};-webkit-mask-image:url(${m.img});mask-image:url(${m.img})"></i></span>`};
@@ -684,8 +686,8 @@ const fixQ=(m,v)=>{const st=stepOf(m);return Math.ceil((parseInt(String(v).repla
 function addQty(m){return fixQ(m,dget(m))}
 let added=null,addedT=0;
 function syncDraft(){document.querySelectorAll(".qp").forEach(i=>{if(document.activeElement!==i)i.value=dget(byId(i.dataset.m))});
-document.querySelectorAll("button.add[data-m]").forEach(b=>{const m=byId(b.dataset.m),v=addQty(m),l=b.querySelector(".al");if(!l)return;const ok=added===b.dataset.k;b.disabled=!v;b.classList.toggle("ok",ok);const t=ok?"Добавлено ✓":"Добавить";if(l.textContent!==t)l.textContent=t})}
-document.addEventListener("click",e=>{const b=e.target.closest("button[data-dq]");if(!b)return;const m=byId(b.dataset.m),st=stepOf(m);{const nv=addQty(m)+(+b.dataset.dq)*st;draft[m.id]=nv>0?nv:""}const i=b.parentNode.querySelector(".qp");if(i)i.value=draft[m.id];syncDraft()});
+document.querySelectorAll("button.add[data-m]").forEach(b=>{const m=byId(b.dataset.m),v=addQty(m),l=b.querySelector(".al");if(!l)return;const ok=added===b.dataset.k;const mn=minAdd(m),low=v>0&&v<mn;b.disabled=!v||low;b.classList.toggle("ok",ok);const t=ok?"Добавлено ✓":low?`Минимум ${mn} шт`:"Добавить";if(l.textContent!==t)l.textContent=t})}
+document.addEventListener("click",e=>{const b=e.target.closest("button[data-dq]");if(!b)return;const m=byId(b.dataset.m),st=stepOf(m);{const nv=addQty(m)+(+b.dataset.dq)*st,mn=minAdd(m);draft[m.id]=nv>=mn&&nv>0?nv:(+b.dataset.dq<0?"":mn||st)}const i=b.parentNode.querySelector(".qp");if(i)i.value=draft[m.id];syncDraft()});
 document.addEventListener("input",e=>{const t=e.target;if(!t.classList||!t.classList.contains("qp"))return;const v=t.value.replace(/\D/g,"").slice(0,5);if(v!==t.value)t.value=v;draft[t.dataset.m]=v;syncDraft()});
 document.addEventListener("change",e=>{const t=e.target;if(!t.classList||!t.classList.contains("qp"))return;const m=byId(t.dataset.m),v=addQty(m);draft[m.id]=v?v:"";t.value=draft[m.id];syncDraft()});
 document.addEventListener("keydown",e=>{const t=e.target;if(e.key!=="Enter"||!t.classList||!t.classList.contains("qp"))return;e.preventDefault();const b=t.closest(".addrow").querySelector(".add");t.blur();b.click()});
@@ -744,9 +746,9 @@ $("#wa").href=blk?"#":`https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponen
 document.addEventListener("click",e=>{const b=e.target.closest("button[data-a]");if(!b)return;const a=b.dataset.a;
 if(a==="col"){sel[b.dataset.id]=+b.dataset.i;return render()}
 const k=b.dataset.k,m=byId(k.split("|")[0]),q=cart[k]||0,T=total(m.id),st=stepOf(m);
-if(a==="del")delete cart[k];if(a==="add"){const v=addQty(m);if(!v)return;cart[k]=q+v;draft[m.id]="";{const ae=document.activeElement;if(ae&&ae.classList&&ae.classList.contains("qp"))ae.blur()}added=k;clearTimeout(addedT);addedT=setTimeout(()=>{added=null;syncDraft()},1300)}
+if(a==="del")delete cart[k];if(a==="add"){const v=addQty(m);if(!v||v<minAdd(m))return;cart[k]=q+v;draft[m.id]="";{const ae=document.activeElement;if(ae&&ae.classList&&ae.classList.contains("qp"))ae.blur()}added=k;clearTimeout(addedT);addedT=setTimeout(()=>{added=null;syncDraft()},1300)}
 if(a==="inc")cart[k]=q+st;
-if(a==="dec"){const nq=q-st;if(nq<=0||(T===q&&T-st<minOf(m)))delete cart[k];else cart[k]=nq}
+if(a==="dec"){const nq=q-st;if(nq<=0||(m.custom&&nq<CUSTOM_MIN)||(T===q&&T-st<minOf(m)))delete cart[k];else cart[k]=nq}
 render()});
 $("#openCart").onclick=()=>$("#ov").classList.add("on");
 $("#close").onclick=()=>$("#ov").classList.remove("on");

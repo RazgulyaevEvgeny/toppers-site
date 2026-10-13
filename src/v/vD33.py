@@ -38,7 +38,7 @@ def fixmodels(t):
     cat=json.load(open(os.environ.get('PROJ','/home/claude/proj')+'/catalog.json',encoding='utf-8'))
     def ln(c):
         tiers=",".join("{from:%d,price:%d}"%(a,b) for a,b in c["tiers"])
-        return '  {id:%s,name:%s,def:"Белый",tiers:[%s],img:%s,m3:%s%s},'%(json.dumps(c["id"]),json.dumps(c["name"],ensure_ascii=False),tiers,json.dumps("posters/%s.webp"%c["id"]),json.dumps("models/%s.bin"%c["id"]),(",fix:"+json.dumps(c["fix"],ensure_ascii=False)) if c.get("fix") else "")
+        return '  {id:%s,name:%s,def:"Белый",tiers:[%s],img:%s,m3:%s%s},'%(json.dumps(c["id"]),json.dumps(c["name"],ensure_ascii=False),tiers,json.dumps("posters/%s.webp"%c["id"]),json.dumps("models/%s.bin"%c["id"]),((",fix:"+json.dumps(c["fix"],ensure_ascii=False)) if c.get("fix") else "")+(",nw:1" if c.get("new") else ""))
     i=t.index("const MODELS=["); j=t.index("\n];",i)
     blk=t[i:j]; cu=[l for l in blk.split("\n") if l.strip().startswith('{id:"custom"')][0].rstrip(",")
     return t[:i]+"const MODELS=[\n"+"\n".join(ln(c) for c in cat)+"\n"+cu+t[j:]
@@ -80,9 +80,9 @@ CSS=r'''
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html{scroll-behavior:smooth}
-body{background:var(--paper);color:var(--ink);font:400 16px/1.5 var(--fb);padding-inline:16px;padding-block:16px 104px}
-@media(min-width:760px){body{padding-inline:40px;padding-block:28px 112px}}
-.shell{max-width:1200px;margin:0 auto}
+body{background:var(--paper);color:var(--ink);font:400 16px/1.5 var(--fb);padding-inline:2px;padding-block:16px 104px}
+@media(min-width:760px){body{padding-inline:26px;padding-block:28px 112px}}
+.shell{max-width:1228px;margin:0 auto;padding-inline:14px;box-sizing:border-box}
 button{font:inherit;color:inherit;cursor:pointer;border:0;transition:background-color .15s,color .15s,opacity .15s,scale .15s,translate .2s}
 button:focus-visible,input:focus-visible,textarea:focus-visible,a:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
 .bar button:focus-visible{outline-color:var(--ink);outline-offset:6px}
@@ -438,6 +438,8 @@ button{-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:tra
 .b3d svg{width:14px;height:14px}
 .b3d:hover{background:var(--blue);color:#fff}.b3d:active{scale:.94}
 .m3{position:fixed;inset:0;z-index:80;background:rgba(18,26,94,.5);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;padding:12px;overflow:auto}
+.nw{position:absolute;z-index:4;top:14px;left:-10px;pointer-events:none;font:800 16px/1 var(--f);letter-spacing:-.02em;color:#f0323c;background:#fff;border:2.5px solid #f0323c;border-radius:999px;padding:.34em .72em .4em;box-shadow:0 6px 16px rgba(240,50,60,.22);rotate:-4deg;white-space:nowrap}
+@media(max-width:759px){.nw{top:10px;left:-7px;font-size:13px;border-width:2px}}
 .m3[hidden]{display:none}
 html.mo{background:#6b72b2}html.mo body{background:transparent}html.mo .shell,html.mo .bar{visibility:hidden}html.mo .m3{background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none}
 .m3b{width:min(100%,calc(100vh - 260px),720px);background:var(--paper);border-radius:28px;padding:14px 14px 16px;box-shadow:0 30px 80px rgba(10,16,70,.4);animation:m3in .35s var(--ease) both}
@@ -527,7 +529,7 @@ html.mo{background:#6b72b2}html.mo body{background:transparent}html.mo .shell,ht
 .shell>*:not(.nav){transition:opacity .6s ease}
 html.boot .shell>*:not(.nav){opacity:0}
 html.boot .shell>*:not(.nav) *,html.boot .shell>*:not(.nav) *::before,html.boot .shell>*:not(.nav) *::after{animation-play-state:paused!important}
-.item{content-visibility:auto;contain-intrinsic-size:auto 600px}
+.item{content-visibility:auto;contain-intrinsic-size:auto 600px}.item.nv{content-visibility:visible;position:relative}
 '''
 ARROW='<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v11M3 8.5 8 13.5l5-5"/></svg>'
 ARROW_UR='<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 12.5l9-9M5 3.5h7.5V11"/></svg>'
@@ -583,7 +585,7 @@ BODY=f'''<div class="shell">
 CARD=r'''let gl3=false;try{const c=document.createElement("canvas");gl3=!!(c.getContext("webgl2")||c.getContext("webgl"))}catch(e){}
 function mount3d(){if(window.Eng)window.Eng.mount()}
 function th3(m,hex){return window.Eng?window.Eng.thumb(m,hex):m.img}
-{const ms=MODELS.filter(m=>!m.custom),cs=colorsOf(ms[0]),av=cs.map((c,i)=>c.n==="Белый"||c.n==="Чёрный"?-1:i).filter(i=>i>=0),FIX={},got={};ms.forEach(m=>{if(m.fix)FIX[m.id]=m.fix});
+{const ms=MODELS.filter(m=>!m.custom),cs=colorsOf(ms[0]),av=cs.map((c,i)=>c.n==="Белый"||c.n==="Чёрный"||c.na?-1:i).filter(i=>i>=0),FIX={},got={};ms.forEach(m=>{if(m.fix)FIX[m.id]=m.fix});
 ms.forEach(m=>{if(FIX[m.id])got[m.id]=cs.findIndex(c=>c.n===FIX[m.id])});
 ms.forEach((m,i)=>{if(got[m.id]!==undefined)return;const bad=new Set();for(let d=1;d<=4;d++){[ms[i-d],ms[i+d]].forEach(x=>{if(x&&got[x.id]!==undefined)bad.add(got[x.id])})}const ok=av.filter(c=>!bad.has(c)),p=ok.length?ok:av;got[m.id]=p[Math.floor(Math.random()*p.length)]});
 ms.forEach(m=>{sel[m.id]=got[m.id]})}
@@ -607,7 +609,7 @@ const txt=m.noPrice?"по запросу":fmt(unit(m,s.T||minOf(m))),chg=lp[m.id
 const tag=`<span class="price${!m.noPrice&&s.T?" on":""}${chg?" pop":""}">${m.noPrice?txt:`${txt}<small>/шт</small>`}</span>`;
 const ph=m.custom?`<div class="ph slot" aria-hidden="true"><div class="bls"><i class="bl b1"></i><i class="bl b2"></i><i class="bl b3"></i><i class="bl b4"></i></div><canvas class="spoil"></canvas>${tag}</div>`:`<div class="ph${m.m3&&gl3?" v3":""}"${m.m3&&gl3?` data-v="${m.id}"`:""}>${photo(m)}${m.m3&&gl3?`<button class="b3d" type="button" data-z3="${m.id}" aria-label="Открыть 3D-просмотр"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"/></svg>3D</button>`:""}${tag}</div>`;
 const info=m.custom?`<p class="desc">${customText(m)}</p>`:`<div class="cap">Тираж → цена за шт, ₸</div><div class="tiers" style="--n:${t.length}">${t.map(x=>`<div class="tp${isOn(m,s,x)}"><span>${x.from}+</span><b>${x.price}<i>&nbsp;₸</i></b></div>`).join("")}</div>`;
-return `<article class="item"${m.custom?' id="custom"':''}>${ph}<h3>${m.name}</h3>${info}${swatches(m)}<div class="act">${ctrl(m,s)}${noteHTML(m,s)}</div></article>`}
+return `<article class="item${m.nw?' nv':''}"${m.custom?' id="custom"':''}>${m.nw?'<span class="nw">Новинка</span>':''}${ph}<h3>${m.name}</h3>${info}${swatches(m)}<div class="act">${ctrl(m,s)}${noteHTML(m,s)}</div></article>`}
 {const w=CONFIG.brand.trim().split(/\s+/),a=document.createElement("span"),b=document.createElement("span"),h=$("#brand");a.className="w1";[...w.shift()].forEach((ch,i)=>{const l=document.createElement("span");l.className="lt";l.style.setProperty("--i",i);l.setAttribute("aria-hidden","true");l.textContent=ch;a.append(l)});b.className="w2";b.textContent=w.join(" ")+" ✨";h.textContent="";h.setAttribute("aria-label",CONFIG.brand);h.append(a,b)}
 {const r=$("#barL");let last="";new MutationObserver(()=>{const v=r.textContent;if(v===last)return;last=v;r.classList.remove("pop");void r.offsetWidth;r.classList.add("pop")}).observe(r,{childList:true,characterData:true,subtree:true})}
 const SP=(()=>{const P=[];let s=7;const rnd=()=>(s=(s*16807)%2147483647)/2147483647;for(let i=0;i<260;i++)P.push({x:rnd(),y:rnd(),a:rnd()*6.283,v:.01+rnd()*.03,f:.8+rnd()*2.2,p:rnd()*6.283,r:.6+rnd()*1.1});return P})();
@@ -617,7 +619,7 @@ let spT=0;
 function spoil(t){if(t-spT<45)return;spT=t;document.querySelectorAll("canvas.spoil").forEach(c=>{if(c._vis===false)return;const d=Math.min(window.devicePixelRatio||1,1.5),w=c.clientWidth,h=c.clientHeight;if(!w||!h)return;if(c.width!==Math.round(w*d)||c.height!==Math.round(h*d)){c.width=Math.round(w*d);c.height=Math.round(h*d)}
 const g=c.getContext("2d"),T=still?0:t/1000;g.setTransform(d,0,0,d,0,0);g.clearRect(0,0,w,h);g.fillStyle="#fff";
 for(let i=0;i<SP.length;i+=2){const q=SP[i];let x=(q.x+Math.cos(q.a)*q.v*T)%1,y=(q.y+Math.sin(q.a)*q.v*T)%1;if(x<0)x+=1;if(y<0)y+=1;g.globalAlpha=.12+.88*Math.pow(.5+.5*Math.sin(T*q.f+q.p),2);const s=q.r*1.8;g.fillRect(x*w-s/2,y*h-s/2,s,s)}})}
-const EMO={ghost_scarf:"👻",ghost_broom:"🧹",heart_knit:"🧶",tykva:"🎃",ghost_hat:"👻",ghost:"👻",lamb:"🐑",cat:"🐱",pig:"🐷",heart:"❤️",custom:"✨"};
+const EMO={bat:"🦇",ghost_scarf:"👻",ghost_broom:"🧹",heart_knit:"🧶",tykva:"🎃",ghost_hat:"👻",ghost:"👻",lamb:"🐑",cat:"🐱",pig:"🐷",heart:"❤️",custom:"✨"};
 document.addEventListener("click",e=>{const b=e.target.closest("button[data-a=add],button[data-a=inc]");if(!b||still)return;const id=b.dataset.k.split("|")[0],em=EMO[id]||"✨",r=b.getBoundingClientRect(),x0=r.left+r.width/2,y0=r.top+r.height/2;
 for(let i=0;i<9;i++){const p=document.createElement("span");p.textContent=em;p.setAttribute("aria-hidden","true");p.style.cssText=`position:fixed;left:${x0}px;top:${y0}px;z-index:95;pointer-events:none;font-size:${20+Math.random()*16}px;line-height:1;will-change:transform,opacity`;document.body.append(p);
 const a=-Math.PI/2+(Math.random()-.5)*2.4,d=70+Math.random()*120,dx=Math.cos(a)*d,dy=Math.sin(a)*d,rot=(Math.random()-.5)*80;

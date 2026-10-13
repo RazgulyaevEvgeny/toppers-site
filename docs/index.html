@@ -463,7 +463,7 @@ html.boot .shell>*:not(.nav){opacity:0}
 html.boot .shell>*:not(.nav) *,html.boot .shell>*:not(.nav) *::before,html.boot .shell>*:not(.nav) *::after{animation-play-state:paused!important}
 .item{content-visibility:auto;contain-intrinsic-size:auto 600px}.item.nv{content-visibility:visible;position:relative}
 
-</style><link rel="preload" as="image" href="posters/bat.webp" fetchpriority="high"><link rel="preload" as="image" href="posters/ghost_hat.webp" fetchpriority="high"><link rel="preload" as="image" href="posters/pig.webp" fetchpriority="high"><link rel="preload" as="image" href="posters/ghost_scarf.webp" fetchpriority="high"><link rel="preload" as="fetch" href="models/bat.bin" crossorigin fetchpriority="low"><link rel="preload" as="fetch" href="models/ghost_hat.bin" crossorigin fetchpriority="low"><link id="fontcss" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap" media="print" onload="this.media='all'"><noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap"></noscript><script src="three.min.js" defer></script><script src="engine.js" defer></script><script src="crm-send.js" defer></script></head><body>
+</style><link rel="preload" as="image" href="posters/chick.webp" fetchpriority="high"><link rel="preload" as="image" href="posters/bat.webp" fetchpriority="high"><link rel="preload" as="image" href="posters/ghost_hat.webp" fetchpriority="high"><link rel="preload" as="image" href="posters/pig.webp" fetchpriority="high"><link rel="preload" as="fetch" href="models/chick.bin" crossorigin fetchpriority="low"><link rel="preload" as="fetch" href="models/bat.bin" crossorigin fetchpriority="low"><link id="fontcss" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap" media="print" onload="this.media='all'"><noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap"></noscript><script src="three.min.js" defer></script><script src="engine.js" defer></script><script src="crm-send.js" defer></script></head><body>
 
 
 <div class="shell">
@@ -630,7 +630,8 @@ const CONFIG={
 };
 // у модели можно задать свои leadTimes, tiers, colors, minQty, step
 const MODELS=[
-  {id:"bat",name:"Летучая мышка",def:"Белый",tiers:[{from:50,price:35},{from:100,price:34},{from:200,price:33}],img:"posters/bat.webp",m3:"models/bat.bin",nw:1},
+  {id:"chick",name:"Цыплёнок",def:"Белый",tiers:[{from:50,price:32},{from:100,price:31},{from:200,price:30}],img:"posters/chick.webp",m3:"models/chick.bin",fix:"Жёлтый",nw:1},
+  {id:"bat",name:"Летучая мышка",def:"Белый",tiers:[{from:50,price:35},{from:100,price:34},{from:200,price:33}],img:"posters/bat.webp",m3:"models/bat.bin",fix:"Чёрный",nw:1},
   {id:"ghost_hat",name:"Призрак в шапке",def:"Белый",tiers:[{from:50,price:33},{from:100,price:32},{from:200,price:31}],img:"posters/ghost_hat.webp",m3:"models/ghost_hat.bin"},
   {id:"pig",name:"Свинка",def:"Белый",tiers:[{from:50,price:43},{from:100,price:42},{from:200,price:41}],img:"posters/pig.webp",m3:"models/pig.bin",fix:"Розовый"},
   {id:"ghost_scarf",name:"Призрак с шарфом",def:"Белый",tiers:[{from:50,price:33},{from:100,price:32},{from:200,price:31}],img:"posters/ghost_scarf.webp",m3:"models/ghost_scarf.bin"},
@@ -708,7 +709,7 @@ let spT=0;
 function spoil(t){if(t-spT<45)return;spT=t;document.querySelectorAll("canvas.spoil").forEach(c=>{if(c._vis===false)return;const d=Math.min(window.devicePixelRatio||1,1.5),w=c.clientWidth,h=c.clientHeight;if(!w||!h)return;if(c.width!==Math.round(w*d)||c.height!==Math.round(h*d)){c.width=Math.round(w*d);c.height=Math.round(h*d)}
 const g=c.getContext("2d"),T=still?0:t/1000;g.setTransform(d,0,0,d,0,0);g.clearRect(0,0,w,h);g.fillStyle="#fff";
 for(let i=0;i<SP.length;i+=2){const q=SP[i];let x=(q.x+Math.cos(q.a)*q.v*T)%1,y=(q.y+Math.sin(q.a)*q.v*T)%1;if(x<0)x+=1;if(y<0)y+=1;g.globalAlpha=.12+.88*Math.pow(.5+.5*Math.sin(T*q.f+q.p),2);const s=q.r*1.8;g.fillRect(x*w-s/2,y*h-s/2,s,s)}})}
-const EMO={bat:"🦇",ghost_scarf:"👻",ghost_broom:"🧹",heart_knit:"🧶",tykva:"🎃",ghost_hat:"👻",ghost:"👻",lamb:"🐑",cat:"🐱",pig:"🐷",heart:"❤️",custom:"✨"};
+const EMO={chick:"🐥",bat:"🦇",ghost_scarf:"👻",ghost_broom:"🧹",heart_knit:"🧶",tykva:"🎃",ghost_hat:"👻",ghost:"👻",lamb:"🐑",cat:"🐱",pig:"🐷",heart:"❤️",custom:"✨"};
 document.addEventListener("click",e=>{const b=e.target.closest("button[data-a=add],button[data-a=inc]");if(!b||still)return;const id=b.dataset.k.split("|")[0],em=EMO[id]||"✨",r=b.getBoundingClientRect(),x0=r.left+r.width/2,y0=r.top+r.height/2;
 for(let i=0;i<9;i++){const p=document.createElement("span");p.textContent=em;p.setAttribute("aria-hidden","true");p.style.cssText=`position:fixed;left:${x0}px;top:${y0}px;z-index:95;pointer-events:none;font-size:${20+Math.random()*16}px;line-height:1;will-change:transform,opacity`;document.body.append(p);
 const a=-Math.PI/2+(Math.random()-.5)*2.4,d=70+Math.random()*120,dx=Math.cos(a)*d,dy=Math.sin(a)*d,rot=(Math.random()-.5)*80;

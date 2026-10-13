@@ -630,6 +630,7 @@ const CONFIG={
 };
 // у модели можно задать свои leadTimes, tiers, colors, minQty, step
 const MODELS=[
+  {id:"custom",name:"Заказать свою модель",def:"Белый",custom:true,noPrice:true,leadTimes:[{from:1,text:"согласуем после макета"}]},
   {id:"chick",name:"Цыплёнок",def:"Белый",tiers:[{from:50,price:32},{from:100,price:31},{from:200,price:30}],img:"posters/chick.webp",m3:"models/chick.bin",fix:"Жёлтый",nw:1},
   {id:"bat",name:"Летучая мышка",def:"Белый",tiers:[{from:50,price:35},{from:100,price:34},{from:200,price:33}],img:"posters/bat.webp",m3:"models/bat.bin",fix:"Чёрный",nw:1},
   {id:"ghost_hat",name:"Призрак в шапке",def:"Белый",tiers:[{from:50,price:33},{from:100,price:32},{from:200,price:31}],img:"posters/ghost_hat.webp",m3:"models/ghost_hat.bin"},
@@ -644,7 +645,6 @@ const MODELS=[
   {id:"kitten",name:"Кошечка",def:"Белый",tiers:[{from:50,price:33},{from:100,price:32},{from:200,price:31}],img:"posters/kitten.webp",m3:"models/kitten.bin"},
   {id:"witch_hat",name:"Ведьмина шляпа",def:"Белый",tiers:[{from:50,price:33},{from:100,price:32},{from:200,price:31}],img:"posters/witch_hat.webp",m3:"models/witch_hat.bin"},
   {id:"skull",name:"Черепок",def:"Белый",tiers:[{from:50,price:33},{from:100,price:32},{from:200,price:31}],img:"posters/skull.webp",m3:"models/skull.bin"},
-  {id:"custom",name:"Заказать свою модель",def:"Белый",custom:true,noPrice:true,leadTimes:[{from:1,text:"согласуем после макета"}]}
 ];
 // ================================================
 const $=s=>document.querySelector(s),cart={},sel={};

@@ -41,7 +41,7 @@ def fixmodels(t):
         return '  {id:%s,name:%s,def:"Белый",tiers:[%s],img:%s,m3:%s%s},'%(json.dumps(c["id"]),json.dumps(c["name"],ensure_ascii=False),tiers,json.dumps("posters/%s.webp"%c["id"]),json.dumps("models/%s.bin"%c["id"]),((",fix:"+json.dumps(c["fix"],ensure_ascii=False)) if c.get("fix") else "")+(",nw:1" if c.get("new") else ""))
     i=t.index("const MODELS=["); j=t.index("\n];",i)
     blk=t[i:j]; cu=[l for l in blk.split("\n") if l.strip().startswith('{id:"custom"')][0].rstrip(",")
-    return t[:i]+"const MODELS=[\n"+"\n".join(ln(c) for c in cat)+"\n"+cu+t[j:]
+    return t[:i]+"const MODELS=[\n"+cu+",\n"+"\n".join(ln(c) for c in cat)+t[j:]  # «Заказать свою модель» всегда первая
 CPRE=fixmodels(CPRE)
 common.CORE_PRE=CPRE
 HP=common.HELPERS

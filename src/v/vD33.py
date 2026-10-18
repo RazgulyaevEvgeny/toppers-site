@@ -666,7 +666,7 @@ window.__boot2=function(){bind();posters()}})();</script>"""
 pre="".join('<link rel="preload" as="image" href="posters/%s.webp" fetchpriority="high">'%c["id"] for c in cat[:4])
 pre+="".join('<link rel="preload" as="fetch" href="models/%s.bin" crossorigin fetchpriority="low">'%c["id"] for c in cat[:2])
 head=('<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
- '<title>raz.toppers</title><meta property="og:title" content="raz.toppers"><meta name="theme-color" content="#ffffff"><link rel="icon" href="favicon.ico" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png"><link rel="apple-touch-icon" href="apple-touch-icon.png"><link rel="manifest" href="manifest.webmanifest">'
+ '<title>raz.toppers</title><meta property="og:title" content="raz.toppers"><meta name="theme-color" content="#ffffff"><link rel="icon" href="favicon.ico?v=3" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=3"><link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=3"><link rel="manifest" href="manifest.webmanifest?v=3"><meta name="apple-mobile-web-app-title" content="Топперы">'
  '<meta name="description" content="Топперы для кофейных стаканчиков — студия «Разгуляев»">'
  '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
  +boot+style+pre+

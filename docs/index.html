@@ -631,7 +631,7 @@ const CONFIG={
   whatsapp:"77064230226",
   currency:"₸", step:10, minQty:50,
   leadTimes:[{from:1,text:"5–7 дней"},{from:200,text:"10 дней"}],
-  colors:[{n:"Белый",c:"#ffffff"},{n:"Жёлтый",c:"#f5b800"},{n:"Оранжевый",c:"#ff7a0d"},{n:"Красный",c:"#ff3b30"},{n:"Розовый",c:"#f0537f"},{n:"Бордовый",c:"#a02b50"},{n:"Чёрный",c:"#262626"},{n:"Синий",c:"#2563eb",na:1},{n:"Фиолетовый",c:"#7c3aed",na:1},{n:"Зелёный",c:"#16a34a",na:1}],
+  colors:[{n:"Белый",c:"#ffffff"},{n:"Жёлтый",c:"#f5b800"},{n:"Оранжевый",c:"#ff7a0d"},{n:"Красный",c:"#ff3b30"},{n:"Розовый",c:"#f0537f"},{n:"Бордовый",c:"#a02b50"},{n:"Чёрный",c:"#262626"},{n:"Синий",c:"#2563eb",na:1},{n:"Фиолетовый",c:"#7c3aed",na:1},{n:"Зелёный",c:"#16a34a"}],
   tiers:[{from:50,price:38},{from:100,price:37},{from:200,price:36}]
 };
 // у модели можно задать свои leadTimes, tiers, colors, minQty, step
@@ -657,11 +657,12 @@ const MODELS=[
   {id:"kitten",name:"Кошечка",def:"Белый",tiers:[{from:50,price:33},{from:100,price:32},{from:200,price:31}],img:"posters/kitten.webp",m3:"models/kitten.bin",cats:"animals"},
   {id:"heart_knit",name:"Вязаное сердечко",def:"Белый",tiers:[{from:50,price:38},{from:100,price:37},{from:200,price:36}],img:"posters/heart_knit.webp",m3:"models/heart_knit.bin",fix:"Красный",cats:"hearts"},
   {id:"heart",name:"Сердечко",def:"Белый",tiers:[{from:50,price:32},{from:100,price:31},{from:200,price:30}],img:"posters/heart.webp",m3:"models/heart.bin",fix:"Красный",cats:"hearts"},
+  {id:"bear_scarf",name:"Мишка с шарфом",def:"Белый",tiers:[{from:500,price:60}],img:"posters/bear_scarf.webp",m3:"models/bear_scarf.bin",multi:1,colors:[{n:"Как на фото",c:"#ffffff"}],cats:"newyear"},
   {id:"santa_duck",name:"Утка Санта",def:"Белый",tiers:[{from:500,price:65}],img:"posters/santa_duck.webp",m3:"models/santa_duck.bin",multi:1,colors:[{n:"Как на фото",c:"#ffffff"}],cats:"newyear"},
   {id:"santa",name:"Дед Мороз",def:"Белый",tiers:[{from:50,price:36},{from:100,price:35},{from:200,price:34}],img:"posters/santa.webp",m3:"models/santa.bin",cats:"newyear"},
-  {id:"tree",name:"Ёлочка",def:"Белый",tiers:[{from:50,price:36},{from:100,price:35},{from:200,price:34}],img:"posters/tree.webp",m3:"models/tree.bin",cats:"newyear"},
-  {id:"snowman",name:"Снеговик",def:"Белый",tiers:[{from:50,price:36},{from:100,price:35},{from:200,price:34}],img:"posters/snowman.webp",m3:"models/snowman.bin",cats:"newyear"},
-  {id:"gift",name:"Подарок",def:"Белый",tiers:[{from:50,price:36},{from:100,price:35},{from:200,price:34}],img:"posters/gift.webp",m3:"models/gift.bin",cats:"newyear"},
+  {id:"tree",name:"Ёлочка",def:"Белый",tiers:[{from:50,price:36},{from:100,price:35},{from:200,price:34}],img:"posters/tree.webp",m3:"models/tree.bin",fix:"Зелёный",cats:"newyear"},
+  {id:"snowman",name:"Снеговик",def:"Белый",tiers:[{from:50,price:36},{from:100,price:35},{from:200,price:34}],img:"posters/snowman.webp",m3:"models/snowman.bin",fix:"Белый",cats:"newyear"},
+  {id:"gift",name:"Подарок",def:"Белый",tiers:[{from:50,price:36},{from:100,price:35},{from:200,price:34}],img:"posters/gift.webp",m3:"models/gift.bin",fix:"Красный",cats:"newyear"},
   {id:"custom",name:"Заказать свою модель",def:"Белый",custom:true,noPrice:true,leadTimes:[{from:1,text:"согласуем после макета"}]}
 ];
 // ================================================

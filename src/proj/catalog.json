@@ -450,6 +450,20 @@
   ]
  },
  {
+  "id": "bear_scarf",
+  "name": "Мишка с шарфом",
+  "tiers": [
+   [
+    500,
+    60
+   ]
+  ],
+  "multi": true,
+  "cats": [
+   "newyear"
+  ]
+ },
+ {
   "id": "santa_duck",
   "name": "Утка Санта",
   "tiers": [
@@ -503,7 +517,8 @@
   ],
   "cats": [
    "newyear"
-  ]
+  ],
+  "fix": "Зелёный"
  },
  {
   "id": "snowman",
@@ -524,7 +539,8 @@
   ],
   "cats": [
    "newyear"
-  ]
+  ],
+  "fix": "Белый"
  },
  {
   "id": "gift",
@@ -545,6 +561,7 @@
   ],
   "cats": [
    "newyear"
-  ]
+  ],
+  "fix": "Красный"
  }
 ]

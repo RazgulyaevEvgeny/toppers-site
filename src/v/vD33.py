@@ -33,7 +33,7 @@ CPRE=_r(CPRE,'const minOf=m=>m.minQty||CONFIG.minQty','const minOf=m=>0',"minOf"
 CPRE=_r(CPRE,'noPrice:true,minQty:100,step:50,','noPrice:true,',"cust")
 CPRE=_r(CPRE,'const bad=()=>MODELS.filter(m=>{const T=total(m.id);return T&&T<minOf(m)});','const bad=()=>[];',"bad")
 _i=CPRE.index("colors:["); _j=CPRE.index("],",_i)+1
-CPRE=CPRE[:_i]+'colors:[{n:"Белый",c:"#ffffff"},{n:"Жёлтый",c:"#f5b800"},{n:"Оранжевый",c:"#ff7a0d"},{n:"Красный",c:"#ff3b30"},{n:"Розовый",c:"#f0537f"},{n:"Бордовый",c:"#a02b50"},{n:"Чёрный",c:"#262626"},{n:"Синий",c:"#2563eb",na:1},{n:"Фиолетовый",c:"#7c3aed",na:1},{n:"Зелёный",c:"#16a34a",na:1}]'+CPRE[_j:]
+CPRE=CPRE[:_i]+'colors:[{n:"Белый",c:"#ffffff"},{n:"Жёлтый",c:"#f5b800"},{n:"Оранжевый",c:"#ff7a0d"},{n:"Красный",c:"#ff3b30"},{n:"Розовый",c:"#f0537f"},{n:"Бордовый",c:"#a02b50"},{n:"Чёрный",c:"#262626"},{n:"Синий",c:"#2563eb",na:1},{n:"Фиолетовый",c:"#7c3aed",na:1},{n:"Зелёный",c:"#16a34a"}]'+CPRE[_j:]
 import re,json,os
 def fixmodels(t):
     cat=json.load(open(os.environ.get('PROJ','/home/claude/proj')+'/catalog.json',encoding='utf-8'))

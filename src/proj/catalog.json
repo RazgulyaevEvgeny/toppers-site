@@ -450,6 +450,20 @@
   ]
  },
  {
+  "id": "snowman_color",
+  "name": "Снеговик цветной",
+  "tiers": [
+   [
+    500,
+    70
+   ]
+  ],
+  "multi": true,
+  "cats": [
+   "newyear"
+  ]
+ },
+ {
   "id": "bear_scarf",
   "name": "Мишка с шарфом",
   "tiers": [

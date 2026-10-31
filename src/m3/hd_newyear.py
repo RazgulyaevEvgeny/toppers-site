@@ -28,3 +28,9 @@ def load(path,aid,EXT):
 W=(245,245,245);K=(28,28,28);R=(225,30,36)
 build(load('/tmp/claude-0/duck/x/3D/3dmodel.model',10,{1:4,2:1,3:1,4:3,5:3,6:2,7:2,8:1,9:1}),'santa_duck.bin',{1:R,2:W,3:K,4:(254,216,1)})
 build(load('/tmp/claude-0/bear/x/3D/3dmodel.model',3,{1:5,2:1}),'bear_scarf.bin',{1:W,2:K,3:K,4:R,5:W})
+import sys; sys.argv=['x']
+exec(open('run2.py').read().split("W=(245")[0])
+W=(245,245,245);K=(28,28,28)
+import numpy as np
+RZ=np.array([[0,1,0],[-1,0,0],[0,0,1.]])  # нос из -x в -y (лицом к клиенту)
+build([(v@RZ,f,L) for v,f,L in load('/tmp/claude-0/sm/x/3D/3dmodel.model',3,{1:1,2:1})],'snowman_color.bin',{1:W,2:K,3:(255,106,19)})

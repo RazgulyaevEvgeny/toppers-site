@@ -20,7 +20,7 @@ if(d.q){const q=new Int8Array(b64(d.q)),nf=new Float32Array(q.length);for(let i=
 function geoBin(buf){const h=new DataView(buf),n=h.getUint32(0,true),ni=h.getUint32(4,true),o=h.getFloat32(8,true);
 const p=new Int16Array(buf,16,3*n),q=new Int8Array(buf,16+6*n,3*n);let off=16+9*n;if(off&1)off++;const ix=new Uint16Array(buf,off,ni);
 const pf=new Float32Array(3*n),nf=new Float32Array(3*n);for(let i=0;i<pf.length;i++){pf[i]=p[i]/30000;nf[i]=q[i]/127}
-const g=new THREE.BufferGeometry();g.setAttribute("position",new THREE.BufferAttribute(pf,3));g.setAttribute("normal",new THREE.BufferAttribute(nf,3));g.setIndex(new THREE.BufferAttribute(ix,1));return{g,o}}
+const g=new THREE.BufferGeometry();g.setAttribute("position",new THREE.BufferAttribute(pf,3));g.setAttribute("normal",new THREE.BufferAttribute(nf,3));g.setIndex(new THREE.BufferAttribute(ix,1));if(h.getUint32(12,true)&1){const cb=new Uint8Array(buf,off+2*ni,3*n),cf=new Float32Array(3*n);for(let i=0;i<cf.length;i++){const c=cb[i]/255;cf[i]=c<=.04045?c/12.92:Math.pow((c+.055)/1.055,2.4)}g.setAttribute("color",new THREE.BufferAttribute(cf,3))}return{g,o}}
 
 function shadowTex(){if(SHT)return SHT;const sc=document.createElement("canvas");sc.width=sc.height=128;const x=sc.getContext("2d"),gr=x.createRadialGradient(64,64,0,64,64,64);gr.addColorStop(0,"rgba(30,40,120,.36)");gr.addColorStop(1,"rgba(30,40,120,0)");x.fillStyle=gr;x.fillRect(0,0,128,128);return SHT=new THREE.CanvasTexture(sc)}
 
@@ -29,7 +29,7 @@ const s=new THREE.Scene(),cam=new THREE.PerspectiveCamera(27.5,1,.1,20);
 s.add(new THREE.HemisphereLight(0xffffff,0xaab3ea,.5));
 const k=new THREE.DirectionalLight(0xffffff,.78);k.position.set(2,3.2,2.4);s.add(k);
 const rim=new THREE.DirectionalLight(0xc9d1ff,.4);rim.position.set(-2.5,1.6,-2);s.add(rim);
-const mat=new THREE.MeshStandardMaterial({color:0xffffff,roughness:.48,metalness:0,side:THREE.DoubleSide});
+const mat=new THREE.MeshStandardMaterial({color:0xffffff,roughness:.48,metalness:0,side:THREE.DoubleSide,vertexColors:!!geoMain.getAttribute("color")});
 const piv=new THREE.Group(),grp=new THREE.Group();piv.position.y=.44;grp.position.y=-.44;piv.add(grp);s.add(piv);
 grp.add(new THREE.Mesh(geoMain,mat));
 const sh=new THREE.Mesh(new THREE.PlaneGeometry(1.3,1.3),new THREE.MeshBasicMaterial({map:shadowTex(),transparent:true,depthWrite:false}));sh.rotation.x=-Math.PI/2;sh.position.y=-.006;s.add(sh);

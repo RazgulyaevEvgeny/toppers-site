@@ -25,7 +25,7 @@ CP=_r(CP,'<div class="qty"><button data-a="dec" data-k="${l.k}"','<div class="ct
 CP=_r(CP,'aria-label="Больше">+</button></div></div>`}).join("")','aria-label="Больше">+</button></div><button class="del" data-a="del" data-k="${l.k}" aria-label="Удалить позицию" title="Удалить"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12.2a2 2 0 0 0 2 1.8h6a2 2 0 0 0 2-1.8L18 7M9 7V4.5A1.5 1.5 0 0 1 10.5 3h3A1.5 1.5 0 0 1 15 4.5V7"/></svg></button></div></div>`}).join("")',"ctl2")
 CP=_r(CP,'if(a==="add")cart[k]=addQty(m,k);','if(a==="del")delete cart[k];if(a==="add")cart[k]=addQty(m,k);',"del")
 CP=_r(CP,'if(a==="add")cart[k]=addQty(m,k);','if(a==="add"){const v=addQty(m);if(!v||v<minAdd(m))return;cart[k]=q+v;draft[m.id]="";{const ae=document.activeElement;if(ae&&ae.classList&&ae.classList.contains("qp"))ae.blur()}added=k;clearTimeout(addedT);addedT=setTimeout(()=>{added=null;syncDraft()},1300)}',"addq")
-CP=_r(CP,'if(nq<=0||(T===q&&T-st<minOf(m)))delete cart[k]','if(nq<=0||(m.custom&&nq<CUSTOM_MIN)||(T===q&&T-st<minOf(m)))delete cart[k]',"dec")
+CP=_r(CP,'if(nq<=0||(T===q&&T-st<minOf(m)))delete cart[k]','if(nq<=0||(m.custom&&nq<CUSTOM_MIN)||(m.multi&&nq<MULTI_MIN)||(T===q&&T-st<minOf(m)))delete cart[k]',"dec")
 CP=_r(CP,'renderGrid();mount3d();watchVis();','renderGrid();syncDraft();applyCat();mount3d();watchVis();',"sync")
 common.CORE_POST=CP
 CPRE=common.CORE_PRE
@@ -39,7 +39,7 @@ def fixmodels(t):
     cat=json.load(open(os.environ.get('PROJ','/home/claude/proj')+'/catalog.json',encoding='utf-8'))
     def ln(c):
         tiers=",".join("{from:%d,price:%d}"%(a,b) for a,b in c["tiers"])
-        return '  {id:%s,name:%s,def:"Белый",tiers:[%s],img:%s,m3:%s%s},'%(json.dumps(c["id"]),json.dumps(c["name"],ensure_ascii=False),tiers,json.dumps("posters/%s.webp"%c["id"]),json.dumps("models/%s.bin"%c["id"]),((",fix:"+json.dumps(c["fix"],ensure_ascii=False)) if c.get("fix") else "")+(",nw:1" if c.get("new") else "")+(',cats:"%s"'%",".join(c.get("cats",[]))))
+        return '  {id:%s,name:%s,def:"Белый",tiers:[%s],img:%s,m3:%s%s},'%(json.dumps(c["id"]),json.dumps(c["name"],ensure_ascii=False),tiers,json.dumps("posters/%s.webp"%c["id"]),json.dumps("models/%s.bin"%c["id"]),((",fix:"+json.dumps(c["fix"],ensure_ascii=False)) if c.get("fix") else "")+(",nw:1" if c.get("new") else "")+(',multi:1,colors:[{n:"Как на фото",c:"#ffffff"}]' if c.get("multi") else "")+(',cats:"%s"'%",".join(c.get("cats",[]))))
     i=t.index("const MODELS=["); j=t.index("\n];",i)
     blk=t[i:j]; cu=[l for l in blk.split("\n") if l.strip().startswith('{id:"custom"')][0].rstrip(",")
     return t[:i]+"const MODELS=[\n"+"\n".join(ln(c) for c in cat)+"\n"+cu+t[j:]  # «Заказать свою модель» всегда последняя
@@ -49,10 +49,12 @@ HP=common.HELPERS
 a=HP.index("const ctrl=");b=HP.index("\n",a)
 HP=HP[:a]+r'''const CUSTOM_MIN=100;
 const draft={};
-const minAdd=m=>m.custom&&!total(m.id)?CUSTOM_MIN:0;
-const dget=m=>draft[m.id]===undefined?(m.custom?CUSTOM_MIN:CONFIG.minQty):draft[m.id];
+const MULTI_MIN=500;
+const minAdd=m=>m.custom&&!total(m.id)?CUSTOM_MIN:m.multi&&!total(m.id)?MULTI_MIN:0;
+const dget=m=>draft[m.id]===undefined?(m.custom?CUSTOM_MIN:m.multi?MULTI_MIN:CONFIG.minQty):draft[m.id];
 const qbox=m=>{if(!m.custom&&colorsOf(m)[sel[m.id]].na)return `<button class="add" disabled>Цвета нет в наличии</button>`;return `<div class="addrow"><div class="qty dq"><button type="button" data-dq="-1" data-m="${m.id}" aria-label="Меньше">−</button><span class="qw"><input class="qn qp" type="text" inputmode="numeric" placeholder="0" data-m="${m.id}" aria-label="Сколько штук добавить" autocomplete="off"><span>шт</span></span><button type="button" data-dq="1" data-m="${m.id}" aria-label="Больше">+</button></div><button class="add" data-a="add" data-m="${m.id}" data-k="${key(m.id,sel[m.id])}"><span class="al">Добавить</span></button></div>`};
 const ctrl=(m,s)=>qbox(m);'''+HP[b:]
+HP=_r(HP,'const swatches=m=>{if(m.custom)return"";','const swatches=m=>{if(m.custom)return"";if(m.multi)return `<div class="cn mc">Цвета как на фото, поменять нельзя. Минимальный тираж — ${MULTI_MIN} шт.</div>`;',"multi")
 HP=_r(HP,' От ${minOf(m)} шт, шаг ${stepOf(m)} шт.',' Минимальный тираж — ${CUSTOM_MIN} шт.',"ct")
 HP=_r(HP,'s.T&&pick(tiersOf(m),s.T)===x','s.T>=x.from&&pick(tiersOf(m),s.T)===x',"ison")
 HP=_r(HP,'<button class="dot${i===sel[m.id]?" on":""}"','<button class="dot${i===sel[m.id]?" on":""}${c.na?" na":""}"',"na")
@@ -587,7 +589,7 @@ BODY=f'''<div class="shell">
 <header class="nav"><img class="logo" src="{LOGO}" alt="Студия брендирования Разгуляев"><nav class="pills" aria-label="Страницы"><button class="pill on" data-tab="catalog">Каталог</button><button class="pill" data-tab="why">Зачем <span class="mx">нужны</span></button><button class="pill opt" data-go="custom">Своя модель</button></nav></header>
 <div data-page="catalog"><section class="hero"><div class="hand-w" aria-hidden="true">{ILL.replace("<svg ","<svg class=\"hand bk\" ",1).replace('role="img" aria-label="Стакан кофе с тремя милыми топперами на крышке"',"")}{ILL.replace("<svg ","<svg class=\"hand fr\" ",1)}</div><div class="hero-l"><h1 id="brand"></h1>
 <div class="hero-foot"><p id="tag"></p></div></div></section>
-<section class="cat" id="catalog"><div class="cat-h"><h2 class="big">Каталог</h2><div class="cats" role="tablist" aria-label="Категории"><button class="ct on" role="tab" data-cat="halloween" aria-selected="true">🎃 Хэллоуин</button><button class="ct" role="tab" data-cat="animals" aria-selected="false">🐾 Животные</button><button class="ct" role="tab" data-cat="hearts" aria-selected="false">❤️ Сердечки</button><button class="ct" role="tab" data-cat="newyear" aria-selected="false">🎄 Новый год</button></div></div><div class="soon" id="soon" hidden><b>Скоро появится</b><span>Новогодние модели уже готовим, загляните позже.</span></div><main class="grid" id="grid"></main></section></div>
+<section class="cat" id="catalog"><div class="cat-h"><h2 class="big">Каталог</h2><div class="cats" role="tablist" aria-label="Категории"><button class="ct on" role="tab" data-cat="halloween" aria-selected="true">🎃 Хэллоуин</button><button class="ct" role="tab" data-cat="animals" aria-selected="false">🐾 Животные</button><button class="ct" role="tab" data-cat="hearts" aria-selected="false">❤️ Сердечки</button><button class="ct" role="tab" data-cat="newyear" aria-selected="false">🎄 Новый год</button></div></div><div class="soon" id="soon" hidden><b>Скоро появится</b><span>Новые модели уже готовим, загляните позже.</span></div><main class="grid" id="grid"></main></section></div>
 {WHY}
 <footer class="foot"><i class="bl f1"></i><i class="bl f2"></i><i class="bl f3"></i><div class="foot-in"><b>Студия брендирования Разгуляев</b><div class="foot-r"><p>Заказы принимаем в WhatsApp. Корзина соберёт выбор в готовое сообщение.</p><div class="foot-b"><a class="btn white" href="https://wa.me/77064230226" target="_blank" rel="noopener">Написать в WhatsApp {ARROW_UR}</a><a class="btn ghost" href="https://instagram.com/raz.brandstudio" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1" fill="currentColor" stroke="none"/></svg>raz.brandstudio</a></div></div></div></footer>
 </div>'''
@@ -597,7 +599,7 @@ function th3(m,hex){return window.Eng?window.Eng.thumb(m,hex):m.img}
 {const ms=MODELS.filter(m=>!m.custom),cs=colorsOf(ms[0]),av=cs.map((c,i)=>c.n==="Белый"||c.n==="Чёрный"||c.na?-1:i).filter(i=>i>=0),FIX={},got={};ms.forEach(m=>{if(m.fix)FIX[m.id]=m.fix});
 ms.forEach(m=>{if(FIX[m.id])got[m.id]=cs.findIndex(c=>c.n===FIX[m.id])});
 ms.forEach((m,i)=>{if(got[m.id]!==undefined)return;const bad=new Set();for(let d=1;d<=4;d++){[ms[i-d],ms[i+d]].forEach(x=>{if(x&&got[x.id]!==undefined)bad.add(got[x.id])})}const ok=av.filter(c=>!bad.has(c)),p=ok.length?ok:av;got[m.id]=p[Math.floor(Math.random()*p.length)]});
-ms.forEach(m=>{sel[m.id]=got[m.id]})}
+ms.forEach(m=>{sel[m.id]=m.multi?0:got[m.id]})}
 const TAGS={tykva:["🎃","Хэллоуин"],ghost_hat:["🎃","Хэллоуин"],ghost:["🎃","Хэллоуин"],ghost_scarf:["🎃","Хэллоуин"],ghost_broom:["🎃","Хэллоуин"],heart_knit:["🔥","Хит"],pig:["🐾","Животные"],cat:["🐾","Животные"]};
 const tg=m=>{const t=TAGS[m.id];return t?`<span class="tg${t[1]==="Хит"?" hit":""}" role="img" aria-label="${t[1]}" title="${t[1]}"><i aria-hidden="true">${t[0]}</i></span>`:""};
 const fixQ=(m,v)=>{const st=stepOf(m);return Math.ceil((parseInt(String(v).replace(/\D/g,""),10)||0)/st)*st};
@@ -610,7 +612,7 @@ document.addEventListener("input",e=>{const t=e.target;if(!t.classList||!t.class
 document.addEventListener("change",e=>{const t=e.target;if(!t.classList||!t.classList.contains("qp"))return;const m=byId(t.dataset.m),v=addQty(m);draft[m.id]=v?v:"";t.value=draft[m.id];syncDraft()});
 document.addEventListener("keydown",e=>{const t=e.target;if(e.key!=="Enter"||!t.classList||!t.classList.contains("qp"))return;e.preventDefault();const b=t.closest(".addrow").querySelector(".add");t.blur();b.click()});
 let curCat="halloween";
-function applyCat(){document.querySelectorAll("#grid .item").forEach((el,i)=>{const m=MODELS[i];el.hidden=!(m.custom||(m.cats||"").split(",").includes(curCat))});document.querySelectorAll(".ct").forEach(b=>{const on=b.dataset.cat===curCat;b.classList.toggle("on",on);b.setAttribute("aria-selected",on)});$("#soon").hidden=curCat!=="newyear"}
+function applyCat(){document.querySelectorAll("#grid .item").forEach((el,i)=>{const m=MODELS[i];el.hidden=!(m.custom||(m.cats||"").split(",").includes(curCat))});document.querySelectorAll(".ct").forEach(b=>{const on=b.dataset.cat===curCat;b.classList.toggle("on",on);b.setAttribute("aria-selected",on)});$("#soon").hidden=MODELS.some(m=>!m.custom&&(m.cats||"").split(",").includes(curCat))}
 document.addEventListener("click",e=>{const b=e.target.closest(".ct");if(!b||b.dataset.cat===curCat)return;curCat=b.dataset.cat;applyCat();mount3d();watchVis()});
 const GC={};
 function renderGrid(){const g=$("#grid");MODELS.forEach(m=>{const h=card(m),e=GC[m.id];const mk=()=>{const t=document.createElement("template");t.innerHTML=h;return t.content.firstElementChild};

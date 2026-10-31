@@ -27,6 +27,11 @@ CP=_r(CP,'if(a==="add")cart[k]=addQty(m,k);','if(a==="del")delete cart[k];if(a==
 CP=_r(CP,'if(a==="add")cart[k]=addQty(m,k);','if(a==="add"){const v=addQty(m);if(!v||v<minAdd(m))return;cart[k]=q+v;draft[m.id]="";{const ae=document.activeElement;if(ae&&ae.classList&&ae.classList.contains("qp"))ae.blur()}added=k;clearTimeout(addedT);addedT=setTimeout(()=>{added=null;syncDraft()},1300)}',"addq")
 CP=_r(CP,'if(nq<=0||(T===q&&T-st<minOf(m)))delete cart[k]','if(nq<=0||(m.custom&&nq<CUSTOM_MIN)||(m.multi&&nq<MULTI_MIN)||(T===q&&T-st<minOf(m)))delete cart[k]',"dec")
 CP=_r(CP,'renderGrid();mount3d();watchVis();','renderGrid();syncDraft();applyCat();mount3d();watchVis();',"sync")
+# город обязателен (31.10.2026)
+CP=_r(CP,'blk=lo||nc||!L.length;','ct0=L.length>0&&!$("#city").value.trim(),blk=lo||nc||ct0||!L.length;',"city1")
+CP=_r(CP,':nc?"Опишите, какую модель вы хотите заказать":"";',':nc?"Опишите, какую модель вы хотите заказать":ct0?"Укажите, из какого вы города":"";',"city2")
+CP=_r(CP,'if(c)s+=`\\nКофейня: ${c}`;','if(c)s+=`\\nКофейня: ${c}`;const ci=$("#city").value.trim();if(ci)s+=`\\nГород: ${ci}`;',"city3")
+CP=_r(CP,'$("#cdesc").oninput=render;','$("#cdesc").oninput=$("#city").oninput=render;',"city4")
 common.CORE_POST=CP
 CPRE=common.CORE_PRE
 CPRE=_r(CPRE,'const minOf=m=>m.minQty||CONFIG.minQty','const minOf=m=>0',"minOf")
@@ -73,6 +78,7 @@ common.CART_MARKUP=r'''<div class="bar" id="bar"><button id="openCart" aria-labe
 <div class="tot"><span>Итого</span><span id="total"></span></div>
 <label for="who">Как мы можем к вам обращаться</label><input id="who" autocomplete="name" placeholder="Имя">
 <label for="cafe">Название кофейни</label><input id="cafe" autocomplete="organization">
+<label for="city">Из какого вы города? <span style="color:#e4121e">*</span></label><input id="city" autocomplete="address-level2" placeholder="Например, Павлодар" required>
 <div id="customBox" hidden><label for="cdesc">Опишите, какую модель вы хотите заказать</label><textarea id="cdesc" rows="3" placeholder="Например: логотип нашей кофейни или персонаж по вашему рисунку"></textarea><p class="hint" style="text-align:left;margin-top:6px">Макет или фото отправите в WhatsApp сразу после заказа.</p></div>
 <label for="note">Комментарий</label><textarea id="note" rows="2"></textarea>
 <div id="warn"></div>

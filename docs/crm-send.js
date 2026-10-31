@@ -59,7 +59,7 @@
     if (sentSig === s) return;           // этот же заказ уже отправлен
     var doc = {
       source: "toppers", code: code, status: "new", createdAt: Date.now(),
-      name: val("who").slice(0, 200), cafe: val("cafe").slice(0, 200), note: val("note").slice(0, 2000),
+      name: val("who").slice(0, 200), cafe: val("cafe").slice(0, 200), note: ((val("city") ? "Город: " + val("city") + "\n" : "") + val("note")).slice(0, 2000),
       customDesc: c.hasCustom ? val("cdesc").slice(0, 2000) : "",
       items: c.items.slice(0, 40), total: Math.round(c.total), qty: c.qty, hasCustom: c.hasCustom,
       text: (s + "\nНомер заявки: " + code).slice(0, 6000)

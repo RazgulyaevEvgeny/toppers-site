@@ -616,6 +616,7 @@ html.boot .shell>*:not(.nav) *,html.boot .shell>*:not(.nav) *::before,html.boot 
 <div class="tot"><span>Итого</span><span id="total"></span></div>
 <label for="who">Как мы можем к вам обращаться</label><input id="who" autocomplete="name" placeholder="Имя">
 <label for="cafe">Название кофейни</label><input id="cafe" autocomplete="organization">
+<label for="city">Из какого вы города? <span style="color:#e4121e">*</span></label><input id="city" autocomplete="address-level2" placeholder="Например, Павлодар" required>
 <div id="customBox" hidden><label for="cdesc">Опишите, какую модель вы хотите заказать</label><textarea id="cdesc" rows="3" placeholder="Например: логотип нашей кофейни или персонаж по вашему рисунку"></textarea><p class="hint" style="text-align:left;margin-top:6px">Макет или фото отправите в WhatsApp сразу после заказа.</p></div>
 <label for="note">Комментарий</label><textarea id="note" rows="2"></textarea>
 <div id="warn"></div>
@@ -754,7 +755,7 @@ if(m.noPrice){cu=true;s+=`${++n}. ${m.name}: ${T} шт (цену назовём 
 else{tot+=u*T;s+=`${++n}. ${m.name}: ${T} шт × ${fmt(u)} = ${fmt(u*T)}\n`}
 s+=m.custom?"":L.map(l=>`   - ${colorsOf(m)[l.ci].n}: ${l.q} шт`).join("\n")+"\n"});
 const cd=$("#cdesc").value.trim();if(cu&&cd)s+=`\nОписание своей модели: ${cd}`;s+=`\nИтого: ${fmt(tot)}`+(cu?" (без своей модели)":"");const c=$("#cafe").value.trim(),nt=$("#note").value.trim();
-const wh=$("#who").value.trim();if(wh)s+=`\nИмя: ${wh}`;if(c)s+=`\nКофейня: ${c}`;if(nt)s+=`\nКомментарий: ${nt}`;return s}
+const wh=$("#who").value.trim();if(wh)s+=`\nИмя: ${wh}`;if(c)s+=`\nКофейня: ${c}`;const ci=$("#city").value.trim();if(ci)s+=`\nГород: ${ci}`;if(nt)s+=`\nКомментарий: ${nt}`;return s}
 function render(){
 renderGrid();syncDraft();applyCat();mount3d();watchVis();
 const L=lines();let tot=0,cnt=0;
@@ -767,7 +768,7 @@ $("#total").textContent=fmt(tot);
 $("#bar").classList.toggle("on",L.length>0);
 $("#barL").textContent=cnt||"";
 
-const b=bad(),lo=L.length>0&&cnt<CONFIG.minQty,nc=L.some(l=>l.m.custom)&&!$("#cdesc").value.trim(),blk=lo||nc||!L.length;$("#warn").textContent=lo?`В корзине ${cnt} шт. Минимальный заказ — ${CONFIG.minQty} шт, оформить меньше нельзя. Добавьте в корзину ещё моделек: нужно ещё ${CONFIG.minQty-cnt} шт.`:nc?"Опишите, какую модель вы хотите заказать":"";
+const b=bad(),lo=L.length>0&&cnt<CONFIG.minQty,nc=L.some(l=>l.m.custom)&&!$("#cdesc").value.trim(),ct0=L.length>0&&!$("#city").value.trim(),blk=lo||nc||ct0||!L.length;$("#warn").textContent=lo?`В корзине ${cnt} шт. Минимальный заказ — ${CONFIG.minQty} шт, оформить меньше нельзя. Добавьте в корзину ещё моделек: нужно ещё ${CONFIG.minQty-cnt} шт.`:nc?"Опишите, какую модель вы хотите заказать":ct0?"Укажите, из какого вы города":"";
 $("#wa").classList.toggle("off",blk);
 $("#wa").href=blk?"#":`https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(msg())}`}
 document.addEventListener("click",e=>{const b=e.target.closest("button[data-a]");if(!b)return;const a=b.dataset.a;
@@ -780,7 +781,7 @@ render()});
 $("#openCart").onclick=()=>$("#ov").classList.add("on");
 $("#close").onclick=()=>$("#ov").classList.remove("on");
 $("#ov").onclick=e=>{if(e.target.id==="ov")$("#ov").classList.remove("on")};
-$("#who").oninput=$("#cafe").oninput=$("#note").oninput=$("#cdesc").oninput=render;
+$("#who").oninput=$("#cafe").oninput=$("#note").oninput=$("#cdesc").oninput=$("#city").oninput=render;
 render();
 
 </script>

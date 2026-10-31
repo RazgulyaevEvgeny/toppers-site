@@ -44,8 +44,8 @@ def build(parts,out,colors=None,budget=64000,stand=True):
     P=lambda x:np.stack([x[:,0],x[:,2],-x[:,1]],1)
     write_bin(out,np.round(P((V-c)*sc)*30000).astype("<i2").flatten(),np.round(P(N)*127).astype("i1").flatten(),F.astype("<u2").flatten(),0.0)
     # «впадины»: затемняем вогнутые места (складки, глаза, пряжки), чтобы детали читались и у одноцветных
-    ao=cavity(V,N)
-    if True:
+    if colors:   # затемнение впадин отключено 31.10: давало грязные тёмные пятна
+        ao=np.ones(len(V))
         base=np.array([colors[k] for k in np.concatenate(Ls)],float) if colors else np.full((len(V),3),255.)
         cols=np.clip(base*ao[:,None],0,255).round().astype(np.uint8)
         b=bytearray(open(out,'rb').read()); b[12:16]=struct.pack('<I',1); b+=cols.tobytes(); open(out,'wb').write(b)

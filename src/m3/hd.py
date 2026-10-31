@@ -12,6 +12,14 @@ def vnorm(v,f):
     a,b,c=v[f[:,0]],v[f[:,1]],v[f[:,2]]; fn=np.cross(b-a,c-a); n=np.zeros_like(v)
     for k in range(3): np.add.at(n,f[:,k],fn)
     l=np.linalg.norm(n,axis=1,keepdims=True); l[l==0]=1; return n/l
+def cavity(V,N):
+    t=cKDTree(V); tot=np.zeros(len(V))
+    for r,w in ((0.35,.45),(0.8,.35),(1.6,.2)):
+        nb=t.query_ball_point(V,r,workers=-1)
+        cen=np.array([V[i].mean(0) for i in nb])
+        d=((cen-V)*N).sum(1)/r          # >0: вершина в ямке
+        tot+=w*d
+    return np.clip(1-5.0*np.clip(tot,0,None),0.32,1.0)
 def build(parts,out,colors=None,budget=64000,stand=True):
     W=[weld(v,f) for v,f,_ in parts]; Ns=[]
     if stand:  # подставка: плоские грани, без размытых нормалей на рёбрах
@@ -35,8 +43,11 @@ def build(parts,out,colors=None,budget=64000,stand=True):
     mn=V.min(0);mx=V.max(0); c=np.array([(mn[0]+mx[0])/2,(mn[1]+mx[1])/2,mn[2]]); sc=1/(mx-mn).max()
     P=lambda x:np.stack([x[:,0],x[:,2],-x[:,1]],1)
     write_bin(out,np.round(P((V-c)*sc)*30000).astype("<i2").flatten(),np.round(P(N)*127).astype("i1").flatten(),F.astype("<u2").flatten(),0.0)
-    if colors:
-        L=np.concatenate(Ls); cols=np.array([colors[k] for k in L],np.uint8)
+    # «впадины»: затемняем вогнутые места (складки, глаза, пряжки), чтобы детали читались и у одноцветных
+    ao=cavity(V,N)
+    if True:
+        base=np.array([colors[k] for k in np.concatenate(Ls)],float) if colors else np.full((len(V),3),255.)
+        cols=np.clip(base*ao[:,None],0,255).round().astype(np.uint8)
         b=bytearray(open(out,'rb').read()); b[12:16]=struct.pack('<I',1); b+=cols.tobytes(); open(out,'wb').write(b)
     import os; print(out,len(V),len(F),os.path.getsize(out)//1024,"KB")
 def read_stl(p):

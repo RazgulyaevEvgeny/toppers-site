@@ -34,3 +34,8 @@ W=(245,245,245);K=(28,28,28)
 import numpy as np
 RZ=np.array([[0,1,0],[-1,0,0],[0,0,1.]])  # нос из -x в -y (лицом к клиенту)
 build([(v@RZ,f,L) for v,f,L in load('/tmp/claude-0/sm/x/3D/3dmodel.model',3,{1:1,2:1})],'snowman_color.bin',{1:W,2:K,3:(255,106,19)})
+exec(open('run2.py').read().split("W=(245")[0])
+W=(245,245,245);K=(28,28,28)
+build(load('/tmp/claude-0/gr/x/3D/3dmodel.model',3,{1:1,2:1}),'grinch.bin',{1:(88,186,38),2:W,3:(225,30,36)})
+exec(open('run2.py').read().split("W=(245")[0])
+build(load('/tmp/claude-0/tc/x/3D/3dmodel.model',4,{1:6,2:4,3:4}),'tree_color.bin',{4:(63,142,67),6:(225,30,36)})

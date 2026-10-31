@@ -26,10 +26,11 @@ function shadowTex(){if(SHT)return SHT;const sc=document.createElement("canvas")
 
 function scene(geoMain){
 const s=new THREE.Scene(),cam=new THREE.PerspectiveCamera(27.5,1,.1,20);
-s.add(new THREE.HemisphereLight(0xffffff,0xaab3ea,.5));
-const k=new THREE.DirectionalLight(0xffffff,.78);k.position.set(2,3.2,2.4);s.add(k);
-const rim=new THREE.DirectionalLight(0xc9d1ff,.4);rim.position.set(-2.5,1.6,-2);s.add(rim);
-const mat=new THREE.MeshStandardMaterial({color:0xffffff,roughness:.48,metalness:0,side:THREE.DoubleSide,vertexColors:!!geoMain.getAttribute("color")});
+s.add(new THREE.HemisphereLight(0xffffff,0x7f88bf,.3));
+const k=new THREE.DirectionalLight(0xffffff,1.15);k.position.set(1.4,2.6,3);s.add(k);
+const fl=new THREE.DirectionalLight(0xe6eaff,.22);fl.position.set(-2.4,.8,1.6);s.add(fl);
+const rim=new THREE.DirectionalLight(0xc9d1ff,.45);rim.position.set(-2.5,1.6,-2);s.add(rim);
+const mat=new THREE.MeshStandardMaterial({color:0xffffff,roughness:.4,metalness:0,side:THREE.DoubleSide,vertexColors:!!geoMain.getAttribute("color")});
 const piv=new THREE.Group(),grp=new THREE.Group();piv.position.y=.44;grp.position.y=-.44;piv.add(grp);s.add(piv);
 grp.add(new THREE.Mesh(geoMain,mat));
 const sh=new THREE.Mesh(new THREE.PlaneGeometry(1.3,1.3),new THREE.MeshBasicMaterial({map:shadowTex(),transparent:true,depthWrite:false}));sh.rotation.x=-Math.PI/2;sh.position.y=-.006;s.add(sh);
